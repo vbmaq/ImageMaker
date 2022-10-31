@@ -35,21 +35,15 @@ TEST = 'test'
 # VGG-16 Takes 224x224 images as input, so we resize all of them
 data_transforms = {
     TRAIN: transforms.Compose([
-        # Data augmentation is a good practice for the train set
-        # Here, we randomly crop the image to 224x224 and
-        # randomly flip it horizontally.
-        transforms.RandomResizedCrop(224),
-        transforms.RandomHorizontalFlip(),
+        transforms.Resize(224),
         transforms.ToTensor(),
     ]),
     VAL: transforms.Compose([
-        transforms.Resize(256),
-        transforms.CenterCrop(224),
+        transforms.Resize(224),
         transforms.ToTensor(),
     ]),
     TEST: transforms.Compose([
-        transforms.Resize(256),
-        transforms.CenterCrop(224),
+        transforms.Resize(224),
         transforms.ToTensor(),
     ])
 }

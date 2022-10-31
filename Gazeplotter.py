@@ -1,6 +1,6 @@
 import matplotlib
 from util import *
-
+from scipy.stats import kde
 # Original copy right
 # This file is part of PyGaze - the open-source toolbox for eye tracking
 #
@@ -87,6 +87,19 @@ SHAPE_ROI = {"own":     ['^', 'blue', 1.75],
              "outside": ['.', 'fuchsia', 1],
              }
 
+SHAPE_ROI_UNIF = {"own":     ['^', 'green', 1.75],
+                  "other":   ['^', 'green', 1.75],
+                  "outside": ['^', 'green', 1.75],
+                  }
+
+
+def get_shape_roi(key, isUnif=False):
+	if isUnif:
+		return SHAPE_ROI_UNIF.get(key)
+	else:
+		return SHAPE_ROI.get(key)
+
+
 # FONT not adam:
 FONT = {'family': 'Ubuntu',
         'size':   12}
@@ -127,23 +140,23 @@ def draw_scanpath_color(saccades, fig, dispsize, originalSize, cmap_saccades='wi
 	 loop  - if prodcuing multiple image loop = 'True' will clear the figure
 				after saving the images
 
-	imagefile  - full path to an image file over which the heatmap
+	imagefile  - full path to an image file over which the heatmap_wimg
 		is to be laid, or None for no image; NOTE: the image
 		may be smaller than the display size, the function
 		assumes that the image was presented at the centre of
 		the display (default = None)
 
 	alpha  - float between 0 and 1, indicating the transparancy of
-		the heatmap, where 0 is completely transparant and 1
+		the heatmap_wimg, where 0 is completely transparant and 1
 		is completely untransparant (default = 0.5)
 
-	savefilename - full path to the file in which the heatmap should be
+	savefilename - full path to the file in which the heatmap_wimg should be
 		saved, or None to not save the file (default = None)
 
 	returns
 
 	fig   - a matplotlib.plt Figure instance, containing the
-		heatmap
+		heatmap_wimg
 	"""
 
 	# IMAGE
@@ -173,7 +186,10 @@ def draw_scanpath_color(saccades, fig, dispsize, originalSize, cmap_saccades='wi
 	return fig
 
 
-def draw_scanpath_fixations_color(saccades, fixations, fig, dispsize, originalSize, cmap_saccades='winter', linewidth=2,
+def draw_scanpath_fixations_color(saccades, fixations, fig, dispsize, originalSize,
+                                  cmap_saccades='winter', linewidth=2,
+                                  preserveSaccadeTemporalInfo=True, defaultSaccadeCol= "green",
+                                  setUniformFixations=False,
                                   radius=108,
                                   imagefile=None, loop=None, alpha=0.5, savefilename=None):
 	"""Draws a scanpath: a series of lines between fixations.
@@ -212,17 +228,17 @@ def draw_scanpath_fixations_color(saccades, fixations, fig, dispsize, originalSi
 	 loop  - if prodcuing multiple image loop = 'True' will clear the figure
 				after saving the images
 
-	imagefile  - full path to an image file over which the heatmap
+	imagefile  - full path to an image file over which the heatmap_wimg
 		is to be laid, or None for no image; NOTE: the image
 		may be smaller than the display size, the function
 		assumes that the image was presented at the centre of
 		the display (default = None)
 
 	alpha  - float between 0 and 1, indicating the transparancy of
-		the heatmap, where 0 is completely transparant and 1
+		the heatmap_wimg, where 0 is completely transparant and 1
 		is completely untransparant (default = 0.5)
 
-	savefilename - full path to the file in which the heatmap should be
+	savefilename - full path to the file in which the heatmap_wimg should be
 		saved, or None to not save the file (default = None)
 
 	returns
@@ -242,11 +258,18 @@ def draw_scanpath_fixations_color(saccades, fixations, fig, dispsize, originalSi
 
 	# SACCADES
 	if saccades:
+		n = len(saccades)
+		if preserveSaccadeTemporalInfo:
+			colors = matplotlib.cm.get_cmap(cmap_saccades, n)
+			colors = colors(range(n))
+		else:
+			colors = [defaultSaccadeCol for _ in range(n)]
+
 		# loop through all saccades
 		i = 0
 		for st, et, dur, sx, sy, ex, ey in saccades:
 			# draw an line between every saccade start and ending
-			ax.plot([sx + extraX, ex + extraX], [sy + extraY, ey + extraY], c=colors(range(n))[i], linewidth=linewidth)
+			ax.plot([sx + extraX, ex + extraX], [sy + extraY, ey + extraY], c=colors[i], linewidth=linewidth)
 			i += 1
 
 	# FIXATIONS
@@ -260,8 +283,8 @@ def draw_scanpath_fixations_color(saccades, fixations, fig, dispsize, originalSi
 					(350 + extraY - radius < fix['y'][i] + extraY < 350 + extraY + radius) or
 					(615 + extraY - radius < fix['y'][i] + extraY < 615 + extraY + radius) or
 					(880 + extraY - radius < fix['y'][i] + extraY < 880 + extraY + radius))):
-				ax.scatter(fix['x'][i] + extraX, fix['y'][i] + extraY, s=SHAPE_ROI['own'][2] * 1000, c=SHAPE_ROI['own'][1],
-				           marker=SHAPE_ROI['own'][0], alpha=alpha, edgecolors='white', zorder=50)
+				ax.scatter(fix['x'][i] + extraX, fix['y'][i] + extraY, s=get_shape_roi('own', setUniformFixations)[2] * 1000, c=get_shape_roi('own', setUniformFixations)[1],
+				           marker=get_shape_roi('own', setUniformFixations)[0], alpha=alpha, edgecolors='white', zorder=50)
 
 			# other
 			elif (((650 + extraX - radius < fix['x'][i] < 650 + extraX + radius) or
@@ -270,15 +293,15 @@ def draw_scanpath_fixations_color(saccades, fixations, fig, dispsize, originalSi
 					      (200 + extraY - radius < fix['y'][i] + extraY < 200 + extraY + radius) or
 					      (468 + extraY - radius < fix['y'][i] + extraY < 468 + extraY + radius) or
 					      (735 + extraY - radius < fix['y'][i] + extraY < 735 + extraY + radius))):
-				ax.scatter(fix['x'][i] + extraX, fix['y'][i] + extraY, s=SHAPE_ROI['other'][2] * 1000,
-				           c=SHAPE_ROI['other'][1],
-				           marker=SHAPE_ROI['other'][0], alpha=alpha, edgecolors='white', zorder=50)
+				ax.scatter(fix['x'][i] + extraX, fix['y'][i] + extraY, s=get_shape_roi('other', setUniformFixations)[2] * 1000,
+				           c=get_shape_roi('other', setUniformFixations)[1],
+				           marker=get_shape_roi('other', setUniformFixations)[0], alpha=alpha, edgecolors='white', zorder=50)
 
 			# outside
 			else:
-				ax.scatter(fix['x'][i] + extraX, fix['y'][i] + extraY, s=SHAPE_ROI['outside'][2] * 1000,
-				           c=SHAPE_ROI['outside'][1],
-				           marker=SHAPE_ROI['outside'][0], alpha=alpha, edgecolors='white', zorder=50)
+				ax.scatter(fix['x'][i] + extraX, fix['y'][i] + extraY, s=get_shape_roi('outside', setUniformFixations)[2] * 1000,
+				           c=get_shape_roi('outside', setUniformFixations)[1],
+				           marker=get_shape_roi('outside', setUniformFixations)[0], alpha=alpha, edgecolors='white', zorder=50)
 
 		# invert the y axis, as (0,0) is top left on a display
 	ax.invert_yaxis()
@@ -333,17 +356,17 @@ def draw_scanpath_fixations_AOI(saccades, fixations, fig, dispsize, originalSize
 	 loop  - if prodcuing multiple image loop = 'True' will clear the figure
 				after saving the images
 
-	imagefile  - full path to an image file over which the heatmap
+	imagefile  - full path to an image file over which the heatmap_wimg
 		is to be laid, or None for no image; NOTE: the image
 		may be smaller than the display size, the function
 		assumes that the image was presented at the centre of
 		the display (default = None)
 
 	alpha  - float between 0 and 1, indicating the transparancy of
-		the heatmap, where 0 is completely transparant and 1
+		the heatmap_wimg, where 0 is completely transparant and 1
 		is completely untransparant (default = 0.5)
 
-	savefilename - full path to the file in which the heatmap should be
+	savefilename - full path to the file in which the heatmap_wimg should be
 		saved, or None to not save the file (default = None)
 
 	returns
@@ -476,3 +499,135 @@ def draw_scanpath_fixations_AOI(saccades, fixations, fig, dispsize, originalSize
 	return fig
 
 
+def draw_heatmap(saccades, fixations, fig, dispsize, originalSize, cmap_saccades='winter',
+                                cmap_fixations='magma',
+                                linewidth=2, radius=108, imagefile=None, loop=None, alpha=0.5, savefilename=None,
+
+                                preserveSaccadeTemporalInfo=True, defaultSaccadeCol = "green", drawAOI = True):
+	fig, ax = draw_display(fig=fig, dispsize=dispsize, imagefile=imagefile)
+
+	# to ensure the final image is correct in aspect ratio
+	extraY = (dispsize[1] - originalSize[1]) / 2
+	extraX = (dispsize[0] - originalSize[0]) / 2
+
+	# SACCADES
+	# if saccades:
+	# 	n = len(saccades)
+	#
+	# 	if preserveSaccadeTemporalInfo:
+	# 		colors = matplotlib.cm.get_cmap(cmap_saccades, n)
+	# 		colors = colors(range(n))
+	# 	else:
+	# 		colors = [defaultSaccadeCol for _ in range(n)]
+	#
+	# 	# loop through all saccades
+	# 	i = 0
+	# 	for st, et, dur, sx, sy, ex, ey in saccades:
+	# 		# draw an line between every saccade start and ending
+	# 		# TO MAKE SACCADES ONE COLOUR CHANGES TO GET ONE COLUR SACADE ITS AN ARRAY SO WATCH OUT C = GREEN.
+	# 		ax.plot([sx + extraX, ex + extraX], [sy + extraY, ey + extraY], c=colors[i], linewidth=linewidth,
+	# 		        zorder=49)
+	# 		i += 1
+
+	# # Areas of Interest
+	ownX = [402, 832, 1258]
+	ownY = [350, 615, 880]
+	otherX = [650, 1078, 1500]
+	otherY = [200, 468, 735]
+
+	# color map of fixations
+	nlevelColors = 20  # CHANGE TO 1 GET 1 COLOUR FOR PAPER WAS 20
+	colorsFix = matplotlib.cm.get_cmap(cmap_fixations, nlevelColors)(np.arange(nlevelColors))
+
+	# for coordX in range(len(ownX)):
+	# 	for coordY in range(len(ownY)):
+	# 		if drawAOI:
+	# 			# plot grey circles MAYBE REMOVE FOR PAPER !
+	# 			circle1 = plt.Circle((ownX[coordX] + extraX, ownY[coordY] + extraY), radius, color='dimgray', zorder=48)
+	# 			ax.add_patch(circle1)
+	# 			circle2 = plt.Circle((otherX[coordX] + extraX, otherY[coordY] + extraY), radius, color='darkgray',
+	# 			                     zorder=48)
+	# 			ax.add_patch(circle2)
+
+	if fixations is not None:
+		fix = parse_fixations(fixations)
+
+		x = fix['x'].repeat(100)
+		y = fix['y'].repeat(100)
+
+		nbins = 300
+		k = kde.gaussian_kde([x, y])
+		xi, yi = np.mgrid[x.min():x.max():nbins * 1j, y.min():y.max():nbins * 1j]
+		zi = k(np.vstack([xi.flatten(), yi.flatten()]))
+
+		ax.pcolormesh(xi, yi, zi.reshape(xi.shape), alpha=1 if imagefile is None else 0.5  , cmap='PuRd')
+
+
+		#
+		# for coordX in range(len(ownX)):
+		# 	for coordY in range(len(ownY)):
+		#
+		# 		# FIXATIONS
+		# 		# plot Own
+		# 		# TO MAKE SACCADES ONE COLOUR CHANGES TO GET ONE COLUR SACADE ITS AN ARRAY SO WATCH OUT C = GREEN. COLOR=SHAPE_ROI['own'][1]
+		# 		fixOccOwn = sum(((ownX[coordX] + extraX - radius < fix['x'] + extraX) & (
+		# 				fix['x'] + extraX < ownX[coordX] + extraY + radius)) &
+		# 		                ((ownY[coordY] + extraY - radius < fix['y'] + extraY) & (
+		# 				                fix['y'] + extraY < ownY[coordY] + extraY + radius)))
+		# 		if nlevelColors > fixOccOwn > 0:
+		# 			ax.scatter(ownX[coordX] + extraX, ownY[coordY] + extraY, s=SHAPE_ROI['own'][2] * 1000,
+		# 			           color=colorsFix[fixOccOwn],
+		# 			           marker=SHAPE_ROI['own'][0], alpha=alpha, edgecolors='white', zorder=50)
+		# 		elif fixOccOwn >= nlevelColors:
+		# 			ax.scatter(ownX[coordX] + extraX, ownY[coordY] + extraY, s=SHAPE_ROI['own'][2] * 1000,
+		# 			           color=colorsFix[nlevelColors - 1],
+		# 			           marker=SHAPE_ROI['own'][0], alpha=alpha, edgecolors='white', zorder=50)
+		#
+		# 		# plot Other
+		# 		# TO MAKE SACCADES ONE COLOUR CHANGES TO GET ONE COLUR SACADE ITS AN ARRAY SO WATCH OUT C = GREEN. COLOR=SHAPE_ROI['OTHER'][1]
+		# 		fixOccOther = sum(((otherX[coordX] + extraX - radius < fix['x'] + extraX) & (
+		# 				fix['x'] + extraX < otherX[coordX] + extraX + radius)) &
+		# 		                  ((otherY[coordY] + extraY - radius < fix['y'] + extraY) & (
+		# 				                  fix['y'] + extraY < otherY[coordY] + extraY + radius)))
+		# 		if nlevelColors > fixOccOther > 0:
+		# 			ax.scatter(otherX[coordX] + extraX, otherY[coordY] + extraY, s=SHAPE_ROI['other'][2] * 1000,
+		# 			           color=colorsFix[fixOccOther],
+		# 			           marker=SHAPE_ROI['other'][0], alpha=alpha, edgecolors='white', zorder=50)
+		# 		elif fixOccOther >= nlevelColors:
+		# 			ax.scatter(otherX[coordX] + extraX, otherY[coordY] + extraY, s=SHAPE_ROI['other'][2] * 1000,
+		# 			           color=colorsFix[nlevelColors - 1],
+		# 			           marker=SHAPE_ROI['other'][0], alpha=alpha, edgecolors='white', zorder=50)
+		#
+		# # plot other, a longwinded way but I cannot seem to index the outside
+		# for i in range(len(fixations)):
+		# 	# own
+		# 	if (((402 - radius < fix['x'][i] < 402 + radius) or
+		# 	     (832 - radius < fix['x'][i] < 832 + radius) or
+		# 	     (1258 - radius < fix['x'][i] < 1258 + radius)) & (
+		# 			(350 + extraY - radius < fix['y'][i] + extraY < 350 + extraY + radius) or
+		# 			(615 + extraY - radius < fix['y'][i] + extraY < 615 + extraY + radius) or
+		# 			(880 + extraY - radius < fix['y'][i] + extraY < 880 + extraY + radius))):
+		# 		continue
+		# 	# other
+		# 	elif (((650 - radius < fix['x'][i] < 650 + radius) or
+		# 	       (1078 - radius < fix['x'][i] < 1078 + radius) or
+		# 	       (1500 - radius < fix['x'][i] < 1500 + radius)) & (
+		# 			      (200 + extraY - radius < fix['y'][i] + extraY < 200 + extraY + radius) or
+		# 			      (468 + extraY - radius < fix['y'][i] + extraY < 468 + extraY + radius) or
+		# 			      (735 + extraY - radius < fix['y'][i] + extraY < 735 + extraY + radius))):
+		# 		continue
+		#
+		# 	# outside
+		# 	else:
+		# 		ax.scatter(fix['x'][i], fix['y'][i] + extraY, s=SHAPE_ROI['outside'][2] * 1000,
+		# 		           c=SHAPE_ROI['outside'][1],
+		# 		           marker=SHAPE_ROI['outside'][0], alpha=alpha, edgecolors='white', zorder=50)
+
+	# invert the y axis, as (0,0) is top left on a display
+	ax.invert_yaxis()
+	# save the figure if a file name was provided
+	if savefilename is not None:
+		fig.savefig(savefilename)
+	if loop is not None:
+		fig.clf()
+	return fig

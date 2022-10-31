@@ -19,7 +19,7 @@ def draw_display(fig, dispsize=(1920, 1080), imagefile=None):
 
 	keyword arguments
 
-	imagefile  - full path to an image file over which the heatmap
+	imagefile  - full path to an image file over which the heatmap_wimg
 		is to be laid, or None for no image; NOTE: the image
 		may be smaller than the display size, the function
 		assumes that the image was presented at the centre of
@@ -44,7 +44,8 @@ def draw_display(fig, dispsize=(1920, 1080), imagefile=None):
 		if not os.path.isfile(imagefile):
 			raise Exception("ERROR in draw_display: imagefile not found at '%s'" % imagefile)
 		# load image
-		img = image.imread(imagefile)
+		img = plt.imread(imagefile)
+
 		# flip image over the horizontal axis
 		# (do not do so on Windows, as the image appears to be loaded with
 		# the correct side up there; what's up with that? :/)
