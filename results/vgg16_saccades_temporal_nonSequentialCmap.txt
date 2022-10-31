@@ -1,0 +1,87 @@
+Epoch 1/20 : Lr: [0.001]
+----------
+Training batch 200/213
+Validation batch 0/60
+Epoch 0 result: 
+Avg loss (train): 0.0846
+Avg acc (train): 0.5994
+Avg loss (val): 0.0776+0.0000j
+Avg acc (val): 0.6563
+----------
+
+Epoch 2/20 : Lr: [0.001]
+----------
+Training batch 200/213
+Validation batch 0/60
+Epoch 1 result: 
+Avg loss (train): 0.0813
+Avg acc (train): 0.6106
+Avg loss (val): 0.0791+0.0000j
+Avg acc (val): 0.6667
+----------
+
+Epoch 3/20 : Lr: [0.001]
+----------
+Training batch 200/213
+Validation batch 0/60
+Epoch 2 result: 
+Avg loss (train): 0.0781
+Avg acc (train): 0.6435
+Avg loss (val): 0.0756+0.0000j
+Avg acc (val): 0.6333
+----------
+
+Epoch 4/20 : Lr: [0.001]
+----------
+Training batch 200/213
+Validation batch 0/60
+Epoch 3 result: 
+Avg loss (train): 0.0788
+Avg acc (train): 0.6576
+Avg loss (val): 0.0674+0.0000j
+Avg acc (val): 0.7271
+----------
+
+Epoch 5/20 : Lr: [0.001]
+----------
+Training batch 200/213
+Validation batch 0/60
+Epoch 4 result: 
+Avg loss (train): 0.0737
+Avg acc (train): 0.6894
+Avg loss (val): 0.0696+0.0000j
+Avg acc (val): 0.7146
+----------
+
+Epoch 6/20 : Lr: [0.001]
+----------
+Training batch 200/213
+Validation batch 0/60
+Epoch 5 result: 
+Avg loss (train): 0.0739
+Avg acc (train): 0.7006
+Avg loss (val): 0.0684+0.0000j
+Avg acc (val): 0.7271
+----------
+
+Epoch 7/20 : Lr: [0.001]
+----------
+Training batch 200/213
+Validation batch 0/60
+Epoch 6 result: 
+Avg loss (train): 0.0730
+Avg acc (train): 0.6924
+Avg loss (val): 0.0675+0.0000j
+Avg acc (val): 0.7354
+----------
+
+
+Training completed in 51m 2s
+Best acc: 0.7354
+Evaluating model
+----------
+Test batch 30/32
+Evaluation completed in 0m 16s
+Avg loss (test): 0.0671
+Avg acc (test): 0.7640
+----------
