@@ -209,7 +209,7 @@ def save_train_images():
 #</editor-fold>
 
 # vvv revised code by Virmarie vvv
-def save_images(df, includeFixations, includeSaccades, includeTemporalInfo, includeAoi, savePath,
+def save_images(df, includeFixations, includeSaccades, includeTemporalInfo, includeAoi, savePath, alpha=1,
                 cmapSaccades="winter", aggregateFixations=True, setUniformFixations=False, drawHeatmap=False,
 				addImageUnderlay=False
                 ):
@@ -255,7 +255,7 @@ def save_images(df, includeFixations, includeSaccades, includeTemporalInfo, incl
 						fig, dispsize=(1920, 1080), originalSize=(1920, 1080),
 				        imagefile=imagefile,
 						cmap_saccades=cmapSaccades, cmap_fixations='magma',
-						linewidth=8, radius=108, loop=True, alpha=1,
+						linewidth=8, radius=108, loop=True, alpha=alpha,
 						savefilename=savefilename,
 						preserveSaccadeTemporalInfo=includeTemporalInfo,
 						drawAOI=includeAoi)
@@ -264,8 +264,9 @@ def save_images(df, includeFixations, includeSaccades, includeTemporalInfo, incl
 						datafile[int(idx) - 1]['events']['Esac'] if includeSaccades else None,
 						datafile[int(idx) - 1]['events']['Efix'] if includeFixations else None,
 						fig, dispsize=(1920, 1920), originalSize=(1920, 1080),
+						imagefile=imagefile,
 						cmap_saccades=cmapSaccades, cmap_fixations='magma',
-						linewidth=8, radius=108, loop=True, alpha=1,
+						linewidth=8, radius=108, loop=True, alpha=alpha,
 						savefilename=savefilename,
 						preserveSaccadeTemporalInfo=includeTemporalInfo,
 						drawAOI=includeAoi
@@ -277,18 +278,18 @@ def save_images(df, includeFixations, includeSaccades, includeTemporalInfo, incl
 							None,
 							fig, dispsize=(1920, 1920), originalSize=(1920, 1080),
 							cmap_saccades=cmapSaccades, cmap_fixations='magma',
-							linewidth=8, radius=108, loop=False, alpha=1,
-							savefilename=None,
+							linewidth=8, radius=108, loop=False, alpha=alpha,
+							savefilename=None, imagefile=imagefile,
 							preserveSaccadeTemporalInfo=includeTemporalInfo,
 							drawAOI=includeAoi)
 
 				fig = draw_scanpath_fixations_color(datafile[int(idx) - 1]['events']['Esac'] if includeSaccades else None,
 					                                datafile[int(idx) - 1]['events']['Efix'] if includeFixations else None,
 												    fig, dispsize=(1920, 1920), originalSize=(1920, 1080),
-												    cmap_saccades=cmapSaccades,
+												    cmap_saccades=cmapSaccades, alpha=alpha,
 											        preserveSaccadeTemporalInfo=includeTemporalInfo, defaultSaccadeCol="green",
 				                                    setUniformFixations=setUniformFixations,
-			                                        savefilename=savefilename,
+			                                        savefilename=savefilename, imagefile=imagefile,
 					                                loop=True
 					                                )
 
@@ -391,10 +392,11 @@ def save_saccades_temporal_fixations_aoi_():
 	            savePath=savePath_val)
 
 
-def save_rawGaze_images(df, dispsize=(1920, 1920), savePath=None, imagefile=None, loop=None,
-                        marker=".", size=1.75, color="white", plotHeatmap=False, numThreads=10
+def save_rawGaze_images(df, dispsize=(1920, 1920), savePath=None,
+                        marker=".", size=1.75, alpha=0.5, color="white", plotHeatmap=False, numThreads=10,
+						addImageUnderlay=False
                         ):
-	throwForbidden()
+	# throwForbidden()
 	#### Loop to get ASC file names from df
 	ascName = {}
 	n = 0
@@ -430,16 +432,22 @@ def save_rawGaze_images(df, dispsize=(1920, 1920), savePath=None, imagefile=None
 				print(f"{savefile} already exists. Skipping...")
 				continue
 
+			if addImageUnderlay:
+				imagefile = os.path.join(pathStimuli, f"stim_{str(idx).zfill(2)}.jpg")
+			else:
+				imagefile = None
+
 			x = datafile[int(idx) - 1]['x']
 			y = datafile[int(idx) - 1]['y']
 			fig = plt.figure(figsize=(1920 / 100, 1920 / 100), dpi=100, frameon=False)
-			fig, ax = draw_display(fig=fig, dispsize=dispsize, imagefile=imagefile)
+			fig, ax, xoff, yoff = draw_display(fig=fig, dispsize=dispsize, imagefile=imagefile, returnOffset=True)
 
 			if plotHeatmap:
 				ax = sns.heatmap()
 
 			else:
-				ax.scatter(x, y, c=color, marker=marker, s=size)
+
+				ax.scatter(x + xoff, y+yoff, c=color, marker=marker, s=size, alpha=alpha, linewidth=0)
 
 			ax.invert_yaxis()
 
@@ -486,9 +494,8 @@ def save_saccades_temporal_fixationsNonAggregated_aoi():
 	            savePath=savePath_val, aggregateFixations=False)
 
 
-# TODO
 def save_heatmaps():
-	# throwForbidden()
+	throwForbidden()
 	savePath_train = 'Data2/heatmap_wimg/train/'
 	savePath_test = 'Data2/heatmap_wimg/test/'
 	savePath_val = 'Data2/heatmap_wimg/validation/'
@@ -526,6 +533,7 @@ def save_heatmaps():
 	            , savePath=savePath_val
 	            , **PARAMS
 	            )
+
 
 def save_heatmaps_noimg():
 	throwForbidden()
@@ -599,17 +607,80 @@ def save_saccades_fixations_oneshape_onecolor():
 	            , **PARAMS
 	            )
 
+
+def save_gazeraw_with_gameboard():
+	throwForbidden()
+	savePath_train = 'Data2/gazeraw_gb/train/'
+	savePath_test = 'Data2/gazeraw_gb/test/'
+	savePath_val = 'Data2/gazeraw_gb/validation/'
+
+	for p in [savePath_train, savePath_test, savePath_val]:
+		for l in ["0", "1"]:
+			Path(os.path.join(p, l)).mkdir(parents=True, exist_ok=True)
+
+	PARAMS = {
+	  "addImageUnderlay": True
+	, "size": 35
+	, "color": "green"
+	}
+
+	save_rawGaze_images(df_train, savePath=savePath_train,
+	                    **PARAMS)
+	save_rawGaze_images(df_test, savePath=savePath_test,
+	                    **PARAMS)
+	save_rawGaze_images(df_val, savePath=savePath_val,
+	                    **PARAMS)
+
+
+def save_saccades_temporal_fixations_with_gameboard():
+	throwForbidden()
+	savePath_train = 'Data2/saccades_temporal_fixations_gb/train/'
+	savePath_test = 'Data2/saccades_temporal_fixations_gb/test/'
+	savePath_val = 'Data2/saccades_temporal_fixations_gb/validation/'
+	for p in [savePath_train, savePath_test, savePath_val]:
+		for l in ["0", "1"]:
+			Path(os.path.join(p, l)).mkdir(parents=True, exist_ok=True)
+
+	PARAMS = {"includeFixations": True
+			, "includeSaccades": True
+			, "includeTemporalInfo": True
+			, "includeAoi": False
+			, "addImageUnderlay": True
+			, "alpha": 0.5
+
+	          }
+
+	save_images(df_train
+	            , savePath=savePath_train
+	            , **PARAMS
+	            )
+	save_images(df_test
+	            , savePath=savePath_test
+	            , **PARAMS
+	            )
+	save_images(df_val
+	            , savePath=savePath_val
+	            , **PARAMS
+	            )
+
+
 #</editor-fold>
 if __name__ == '__main__':
 	seqCmap = ["winter", True]  # [cmapName, isSequential]
 	nonseqCmap = ["prism", False]
 
 	opt = sys.argv[1]
+	# opt="gbstf"
+	# opt = "gbraw"
 
 	if opt == "img":
 		save_heatmaps()
 	if opt == "noimg":
 		save_heatmaps_noimg()
+	if opt == "gbstf":
+		save_saccades_temporal_fixations_with_gameboard()
+	if opt == "gbraw":
+		save_gazeraw_with_gameboard()
 
 	# save_saccades_fixations_oneshape_onecolor()
 	# save_saccades_temporal_fixations_aoi_()

@@ -39,7 +39,7 @@ def print_gridsearch_estimator(dataset):
 	pathtoValData = os.path.join(pathtoData, "noaugs", f"{dataset}_{VAL}.pkl")
 	pathtoTestData = os.path.join(pathtoData, "noaugs", f"{dataset}_{TEST}.pkl")
 
-	x_train, y_train, x_val, y_val, x_test, y_test = load_dataset(pathtoTrainData, pathtoValData, pathtoTestData)
+	x_train, y_train, _, _, _, _ = load_dataset(pathtoTrainData, pathtoValData, pathtoTestData)
 	print(f"x_train {x_train[0].shape}")
 
 	param_grid = {'C':      [0.1, 10, 100],

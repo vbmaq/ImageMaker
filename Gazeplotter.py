@@ -397,7 +397,7 @@ def draw_scanpath_fixations_AOI(saccades, fixations, fig, dispsize, originalSize
 			# draw an line between every saccade start and ending
 			# TO MAKE SACCADES ONE COLOUR CHANGES TO GET ONE COLUR SACADE ITS AN ARRAY SO WATCH OUT C = GREEN.
 			ax.plot([sx + extraX, ex + extraX], [sy + extraY, ey + extraY], c=colors[i], linewidth=linewidth,
-			        zorder=49)
+			        zorder=49, alpha=alpha)
 			i += 1
 
 	# Areas of Interest

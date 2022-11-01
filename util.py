@@ -6,7 +6,7 @@ import os
 # HELPER FUNCTIONS
 
 
-def draw_display(fig, dispsize=(1920, 1080), imagefile=None):
+def draw_display(fig, dispsize=(1920, 1080), imagefile=None, returnOffset=False):
 	"""Returns a matplotlib.plt Figure and its axes, with a size of
 	dispsize, a black background colour, and optionally with an image drawn
 	onto it
@@ -30,7 +30,7 @@ def draw_display(fig, dispsize=(1920, 1080), imagefile=None):
 		with a size of dispsize, and an image drawn onto it
 		if an imagefile was passed
 	"""
-
+	x, y = 0,0
 	# construct screen (black background)
 	data_type = 'float32'
 	if imagefile != None:
@@ -72,7 +72,10 @@ def draw_display(fig, dispsize=(1920, 1080), imagefile=None):
 
 	ax.imshow(screen)  # , origin='upper')
 
-	return fig, ax
+	if imagefile and returnOffset:
+		return fig, ax, x, y
+	else:
+		return fig, ax
 
 
 def gaussian(x, sx, y=None, sy=None):
