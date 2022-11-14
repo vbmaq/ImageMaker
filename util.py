@@ -6,6 +6,18 @@ import os
 # HELPER FUNCTIONS
 
 
+def calculate_offset(dispSize, originalSize):
+	"""
+	Returns x and y offset
+	:param dispSize: display size (w, h)
+	:param originalSize: original size (w, h)
+	:return: offset_x, offset_y
+	"""
+	offset_x = (dispSize[0] - originalSize[0]) / 2
+	offset_y = (dispSize[1] - originalSize[1]) / 2
+	return offset_x, offset_y
+
+
 def draw_display(fig, dispsize=(1920, 1080), imagefile=None, returnOffset=False):
 	"""Returns a matplotlib.plt Figure and its axes, with a size of
 	dispsize, a black background colour, and optionally with an image drawn

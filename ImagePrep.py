@@ -698,8 +698,7 @@ def save_images_test(df, includeFixations, includeSaccades, includeTemporalInfo,
                      ):
 		ascName = get_asc_file_names(df)
 		fig = plt.figure(figsize=(1920 / 100, 1920 / 100), dpi=100.0, frameon=False)
-		offset_x = (dispsize[0] - originalSize[0]) / 2
-		offset_y = (dispsize[1] - originalSize[1]) / 2
+		offset_x, offset_y = calculate_offset(dispsize, originalSize)
 
 		####### for loop to make images
 		for isub, subject in enumerate(ascName):
