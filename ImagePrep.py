@@ -15,90 +15,86 @@ def throwForbidden():
 #<editor-fold desc="Constants for image prep">
 
 NUM_THREADS = 10
-### set parent path
-path = ''
+
+### set parent path (you'll need this if you're running from colab with a mounted drive)
+PARENT_PATH = ''
 
 ### set location of Test.csv, Validation.csv and Train.csv within parent path
-testCSV = 'data/test.csv'
-validationCSV = 'data/validation.csv'
-trainCSV = 'data/train.csv'
-
-### set location of ASCfiles used for making the images within parent path
-folderASC = 'ASCFiles/fase1/'
-
-
-
-### Percentage of scanpath (15%, 30%, 50%, 80% ) used for test pictures.
-percentageList = [0.15, 0.3, 0.5, 0.8]
-
-##### Scanpath using timein miliseconds (2s, 5s, 10s,15s)
-Timings = [2000, 5000, 10000, 15000]  # miliseconds
-
-### load data
-df_test = pd.read_csv(path + testCSV)
-df_val = pd.read_csv(path + validationCSV)
-df_train = pd.read_csv(path + trainCSV)
+PATH_TRAIN_CSV = 'data/train.csv'
+PATH_VAL_CSV = 'data/validation.csv'
+PATH_TEST_CSV = 'data/test.csv'
 
 ### path to stimuli
-pathStimuli = "stimoli-phase-1/"
+DIR_STIMULI = "stimoli-phase-1/"
 
-### path of ASC files
-pathASC = path + folderASC
+### set location of ASCfiles used for making the images within parent path
+DIR_ASC = os.path.join(PARENT_PATH, 'ASCFiles/fase1/')
 
-### make directories and save paths for images
-pathSave_test = path + 'data/test/'
-# os.mkdir(pathSave_test)
 
-pathSave_percentage = path + 'data/test_percentages/'
-# os.mkdir(pathSave_percentage)
-# for percentage in percentageList:
-#   os.mkdir(pathSave_percentage + 'test_' + str(int(percentage*100))+'/')
-
-pathSave_timing = path + 'data/test_timings/'
-# os.mkdir(pathSave_timing)
-# for elapseTime in Timings:
-#   os.mkdir(pathSave_timing +'test_' + str(int(elapseTime/1000))+'s/')
-
-pathSave_val = path + 'data/validation/'
-# os.mkdir(pathSave_val)
-
-pathSave_train = path + 'data/train/'
-# os.mkdir(pathSave_train)
-
-### maps Color
-cmaps = {}
-cmaps['Fixations '] = ['magma', 'jet']
-cmaps['Saccades  '] = ['winter', 'magma']
-
-### plotting color maps
-gradient = np.linspace(0, 1, 256)
-gradient = np.vstack((gradient, gradient))
+### load data
+df_test = pd.read_csv(PARENT_PATH + PATH_TEST_CSV)
+df_val = pd.read_csv(PARENT_PATH + PATH_VAL_CSV)
+df_train = pd.read_csv(PARENT_PATH + PATH_TRAIN_CSV)
 
 #</editor-fold>
 
 #<editor-fold desc="Funcs for image prep">
 #<editor-fold desc="old code">
-def plot_color_gradients(cmap_category, cmap_list):
-	# Create figure and adjust figure height to number of colormaps
-	'''
-    Nothing useful just colourbar
-    '''
 
-	nrows = len(cmap_list)
-	figh = 0.35 + 0.15 + (nrows + (nrows - 1) * 0.1) * 0.22
-	fig, axs = plt.subplots(nrows=nrows + 1, figsize=(10.5, figh))
-	fig.subplots_adjust(top=1 - 0.35 / figh, bottom=0.15 / figh,
-	                    left=0.2, right=0.99)
-	axs[0].set_title(cmap_category + ' colormaps', fontsize=14)
+### maps Color
+# cmaps = {}
+# cmaps['Fixations '] = ['magma', 'jet']
+# cmaps['Saccades  '] = ['winter', 'magma']
 
-	for ax, name in zip(axs, cmap_list):
-		ax.imshow(gradient, aspect='auto', cmap=plt.get_cmap(name))
-		ax.text(-0.01, 0.5, name, va='center', ha='right', fontsize=10,
-		        transform=ax.transAxes)
+### plotting color maps
+# gradient = np.linspace(0, 1, 256)
+# gradient = np.vstack((gradient, gradient))
 
-	# Turn off *all* ticks & spines, not just the ones with colormaps.
-	for ax in axs:
-		ax.set_axis_off()
+### Percentage of scanpath (15%, 30%, 50%, 80% ) used for test pictures.
+# percentageList = [0.15, 0.3, 0.5, 0.8]
+##### Scanpath using timein miliseconds (2s, 5s, 10s,15s)
+# Timings = [2000, 5000, 10000, 15000]  # miliseconds
+# os.mkdir(pathSave_test)
+# pathSave_percentage = PARENT_PATH + 'data/test_percentages/'
+# os.mkdir(pathSave_percentage)
+# for percentage in percentageList:
+#   os.mkdir(pathSave_percentage + 'test_' + str(int(percentage*100))+'/')
+
+# pathSave_timing = PARENT_PATH + 'data/test_timings/'
+# os.mkdir(pathSave_timing)
+# for elapseTime in Timings:
+#   os.mkdir(pathSave_timing +'test_' + str(int(elapseTime/1000))+'s/')
+
+# os.mkdir(pathSave_val)
+
+# os.mkdir(pathSave_train)
+
+# ### make directories and save paths for images
+# DIR_SAVE_TRAIN = PARENT_PATH + 'data/train/'
+# DIR_SAVE_VAL = PARENT_PATH + 'data/validation/'
+# DIR_SAVE_TEST = PARENT_PATH + 'data/test/'
+#
+# def plot_color_gradients(cmap_category, cmap_list):
+# 	# Create figure and adjust figure height to number of colormaps
+# 	'''
+#     Nothing useful just colourbar
+#     '''
+#
+# 	nrows = len(cmap_list)
+# 	figh = 0.35 + 0.15 + (nrows + (nrows - 1) * 0.1) * 0.22
+# 	fig, axs = plt.subplots(nrows=nrows + 1, figsize=(10.5, figh))
+# 	fig.subplots_adjust(top=1 - 0.35 / figh, bottom=0.15 / figh,
+# 	                    left=0.2, right=0.99)
+# 	axs[0].set_title(cmap_category + ' colormaps', fontsize=14)
+#
+# 	for ax, name in zip(axs, cmap_list):
+# 		ax.imshow(gradient, aspect='auto', cmap=plt.get_cmap(name))
+# 		ax.text(-0.01, 0.5, name, va='center', ha='right', fontsize=10,
+# 		        transform=ax.transAxes)
+#
+# 	# Turn off *all* ticks & spines, not just the ones with colormaps.
+# 	for ax in axs:
+# 		ax.set_axis_off()
 
 
 # for cmap_category, cmap_list in cmaps.items():
@@ -106,108 +102,109 @@ def plot_color_gradients(cmap_category, cmap_list):
 #
 # plt.show()
 
-
-def save_test_images():
-	#### Loop to get ASC file names from df
-	ascName = {}
-	n = 0
-	for iTrial in range(df_test.shape[0]):
-		if n > 9:
-			n = 0
-
-		if n < 1:
-			ascName[df_test.iloc[iTrial, 5][:-6]] = []
-			name = df_test.iloc[iTrial, 5][:-6]
-		ascName[name].append(df_test.iloc[iTrial, 5][-6:-4])
-		n += 1
-
-	for i in ascName:
-		for idx in range(len(ascName[i])):
-			ascName[i][idx] = ascName[i][idx].replace("_", "", 1)
-
-	####### for loop to make images
-	fig = plt.figure(figsize=(1920 / 100, 1920 / 100), dpi=100.0, frameon=False)
-	for isub, subject in enumerate(ascName):
-		print('PROCCESSING ' + subject)
-		datafile = read_edf(pathASC + subject + '.asc', start='START',
-		                    stop=None, missing=0.0, debug=False)
-		for idx in ascName[subject]:
-			draw_scanpath_fixations_AOI(datafile[int(idx) - 1]['events']['Esac'],
-			                            datafile[int(idx) - 1]['events']['Efix'],
-			                            fig, dispsize=(1920, 1920), originalSize=(1920, 1080),
-			                            cmap_saccades='winter', cmap_fixations='magma',
-			                            linewidth=8, radius=108, loop=True, alpha=1,
-			                            savefilename=pathSave_test + str(subject) + '_' + idx + '.jpg')
-
-
-def save_val_images():
-	#### Loop to get ASC file names from df
-	ascName = {}
-	n = 0
-	for iTrial in range(df_val.shape[0]):
-		if n > 9:
-			n = 0
-
-		if n < 1:
-			ascName[df_val.iloc[iTrial, 5][:-6]] = []
-			name = df_val.iloc[iTrial, 5][:-6]
-		ascName[name].append(df_val.iloc[iTrial, 5][-6:-4])
-		n += 1
-
-	for i in ascName:
-		for idx in range(len(ascName[i])):
-			ascName[i][idx] = ascName[i][idx].replace("_", "", 1)
-
-	###### for loop to make images
-	fig = plt.figure(figsize=(1920 / 100, 1920 / 100), dpi=100.0, frameon=False)
-	for isub, subject in enumerate(ascName):
-		print('PROCCESSING ' + subject)
-		datafile = read_edf(pathASC + subject + '.asc', start='START',
-		                    stop=None, missing=0.0, debug=False)
-		for idx in ascName[subject]:
-			draw_scanpath_fixations_AOI(datafile[int(idx) - 1]['events']['Esac'],
-			                            datafile[int(idx) - 1]['events']['Efix'],
-			                            fig, dispsize=(1920, 1920), originalSize=(1920, 1080), cmap_saccades='winter',
-			                            cmap_fixations='magma',
-			                            linewidth=8, radius=108, loop=True, alpha=1,
-			                            savefilename=pathSave_val + str(subject) + '_' + idx + '.jpg')
-
-
-def save_train_images():
-	#### Loop to get ASC file names from df
-	ascName = {}
-	n = 0
-	for iTrial in range(df_train.shape[0]):
-		if n > 9:
-			n = 0
-
-		if n < 1:
-			ascName[df_train.iloc[iTrial, 5][:-6]] = []
-			name = df_train.iloc[iTrial, 5][:-6]
-		ascName[name].append(df_train.iloc[iTrial, 5][-6:-4])
-		n += 1
-
-	for i in ascName:
-		for idx in range(len(ascName[i])):
-			ascName[i][idx] = ascName[i][idx].replace("_", "", 1)
-
-	####### for loop to make images
-
-	fig = plt.figure(figsize=(1920 / 100, 1920 / 100), dpi=100.0, frameon=False)
-
-	for isub, subject in enumerate(ascName):
-		print('PROCCESSING ' + subject)
-		datafile = read_edf(pathASC + subject + '.asc', start='START',
-		                    stop=None, missing=0.0, debug=False)
-		for idx in ascName[subject]:
-			draw_scanpath_fixations_AOI(datafile[int(idx) - 1]['events']['Esac'],
-			                            datafile[int(idx) - 1]['events']['Efix'],
-			                            fig, dispsize=(1920, 1920), originalSize=(1920, 1080), cmap_saccades='winter',
-			                            cmap_fixations='magma',
-			                            linewidth=8, radius=108, loop=True, alpha=1,
-			                            savefilename=pathSave_train + str(subject) + '_' + idx + '.jpg')
+#
+# def save_test_images():
+# 	#### Loop to get ASC file names from df
+# 	ascName = {}
+# 	n = 0
+# 	for iTrial in range(df_test.shape[0]):
+# 		if n > 9:
+# 			n = 0
+#
+# 		if n < 1:
+# 			ascName[df_test.iloc[iTrial, 5][:-6]] = []
+# 			name = df_test.iloc[iTrial, 5][:-6]
+# 		ascName[name].append(df_test.iloc[iTrial, 5][-6:-4])
+# 		n += 1
+#
+# 	for i in ascName:
+# 		for idx in range(len(ascName[i])):
+# 			ascName[i][idx] = ascName[i][idx].replace("_", "", 1)
+#
+# 	####### for loop to make images
+# 	fig = plt.figure(figsize=(1920 / 100, 1920 / 100), dpi=100.0, frameon=False)
+# 	for isub, subject in enumerate(ascName):
+# 		print('PROCCESSING ' + subject)
+# 		datafile = read_edf(DIR_ASC + subject + '.asc', start='START',
+# 		                    stop=None, missing=0.0, debug=False)
+# 		for idx in ascName[subject]:
+# 			draw_scanpath_fixations_AOI(datafile[int(idx) - 1]['events']['Esac'],
+# 			                            datafile[int(idx) - 1]['events']['Efix'],
+# 			                            fig, dispsize=(1920, 1920), originalSize=(1920, 1080),
+# 			                            cmap_saccades='winter', cmap_fixations='magma',
+# 			                            linewidth=8, radius=108, loop=True, alpha=1,
+# 			                            savefilename=DIR_SAVE_TEST + str(subject) + '_' + idx + '.jpg')
+#
+#
+# def save_val_images():
+# 	#### Loop to get ASC file names from df
+# 	ascName = {}
+# 	n = 0
+# 	for iTrial in range(df_val.shape[0]):
+# 		if n > 9:
+# 			n = 0
+#
+# 		if n < 1:
+# 			ascName[df_val.iloc[iTrial, 5][:-6]] = []
+# 			name = df_val.iloc[iTrial, 5][:-6]
+# 		ascName[name].append(df_val.iloc[iTrial, 5][-6:-4])
+# 		n += 1
+#
+# 	for i in ascName:
+# 		for idx in range(len(ascName[i])):
+# 			ascName[i][idx] = ascName[i][idx].replace("_", "", 1)
+#
+# 	###### for loop to make images
+# 	fig = plt.figure(figsize=(1920 / 100, 1920 / 100), dpi=100.0, frameon=False)
+# 	for isub, subject in enumerate(ascName):
+# 		print('PROCCESSING ' + subject)
+# 		datafile = read_edf(DIR_ASC + subject + '.asc', start='START',
+# 		                    stop=None, missing=0.0, debug=False)
+# 		for idx in ascName[subject]:
+# 			draw_scanpath_fixations_AOI(datafile[int(idx) - 1]['events']['Esac'],
+# 			                            datafile[int(idx) - 1]['events']['Efix'],
+# 			                            fig, dispsize=(1920, 1920), originalSize=(1920, 1080), cmap_saccades='winter',
+# 			                            cmap_fixations='magma',
+# 			                            linewidth=8, radius=108, loop=True, alpha=1,
+# 			                            savefilename=DIR_SAVE_VAL + str(subject) + '_' + idx + '.jpg')
+#
+#
+# def save_train_images():
+# 	#### Loop to get ASC file names from df
+# 	ascName = {}
+# 	n = 0
+# 	for iTrial in range(df_train.shape[0]):
+# 		if n > 9:
+# 			n = 0
+#
+# 		if n < 1:
+# 			ascName[df_train.iloc[iTrial, 5][:-6]] = []
+# 			name = df_train.iloc[iTrial, 5][:-6]
+# 		ascName[name].append(df_train.iloc[iTrial, 5][-6:-4])
+# 		n += 1
+#
+# 	for i in ascName:
+# 		for idx in range(len(ascName[i])):
+# 			ascName[i][idx] = ascName[i][idx].replace("_", "", 1)
+#
+# 	####### for loop to make images
+#
+# 	fig = plt.figure(figsize=(1920 / 100, 1920 / 100), dpi=100.0, frameon=False)
+#
+# 	for isub, subject in enumerate(ascName):
+# 		print('PROCCESSING ' + subject)
+# 		datafile = read_edf(DIR_ASC + subject + '.asc', start='START',
+# 		                    stop=None, missing=0.0, debug=False)
+# 		for idx in ascName[subject]:
+# 			draw_scanpath_fixations_AOI(datafile[int(idx) - 1]['events']['Esac'],
+# 			                            datafile[int(idx) - 1]['events']['Efix'],
+# 			                            fig, dispsize=(1920, 1920), originalSize=(1920, 1080), cmap_saccades='winter',
+# 			                            cmap_fixations='magma',
+# 			                            linewidth=8, radius=108, loop=True, alpha=1,
+# 			                            savefilename=DIR_SAVE_TRAIN + str(subject) + '_' + idx + '.jpg')
 #</editor-fold>
 
+#<editor-fold desc="    NEW CODE ">
 # vvv revised code by Virmarie vvv
 def save_images(df, includeFixations, includeSaccades, includeTemporalInfo, includeAoi, savePath, alpha=1,
                 cmapSaccades="winter", aggregateFixations=True, setUniformFixations=False, drawHeatmap=False,
@@ -236,7 +233,7 @@ def save_images(df, includeFixations, includeSaccades, includeTemporalInfo, incl
 	for isub, subject in enumerate(ascName):
 		print('PROCCESSING ' + subject)
 
-		datafile = read_edf(pathASC + subject + '.asc', start='START',
+		datafile = read_edf(DIR_ASC + subject + '.asc', start='START',
 		                    stop=None, missing=0.0, debug=False)
 		for idx in ascName[subject]:
 
@@ -246,7 +243,7 @@ def save_images(df, includeFixations, includeSaccades, includeTemporalInfo, incl
 
 			savefilename = os.path.join(savePath, str(label), f"{str(subject)}_{idx}.jpg")
 			if addImageUnderlay:
-				imagefile = os.path.join(pathStimuli, f"stim_{str(idx).zfill(2)}.jpg")
+				imagefile = os.path.join(DIR_STIMULI, f"stim_{str(idx).zfill(2)}.jpg")
 			else:
 				imagefile = None
 			if drawHeatmap:
@@ -300,9 +297,6 @@ def save_images(df, includeFixations, includeSaccades, includeTemporalInfo, incl
 			for t in current_threads:
 				t.start()
 			current_threads[-1].join()
-
-
-
 def save_saccades_only():
 	throwForbidden()
 	savePath_train = 'Data/saccades_only/train/'
@@ -419,7 +413,7 @@ def save_rawGaze_images(df, dispsize=(1920, 1920), savePath=None,
 
 	for isub, subject in enumerate(ascName):
 		print('PROCCESSING ' + subject)
-		datafile = read_edf(pathASC + subject + '.asc', start='START',
+		datafile = read_edf(DIR_ASC + subject + '.asc', start='START',
 		                    stop=None, missing=0.0, debug=False)
 
 		for idx in ascName[subject]:
@@ -433,7 +427,7 @@ def save_rawGaze_images(df, dispsize=(1920, 1920), savePath=None,
 				continue
 
 			if addImageUnderlay:
-				imagefile = os.path.join(pathStimuli, f"stim_{str(idx).zfill(2)}.jpg")
+				imagefile = os.path.join(DIR_STIMULI, f"stim_{str(idx).zfill(2)}.jpg")
 			else:
 				imagefile = None
 
@@ -663,24 +657,176 @@ def save_saccades_temporal_fixations_with_gameboard():
 	            , **PARAMS
 	            )
 
-
 #</editor-fold>
+
+
+def get_asc_file_names(df:pd.DataFrame):
+	"""
+	#### Loop to get ASC file names from df
+	:param df: Pandas DataFrame
+	:return dict of subject with filenames:
+	"""
+	ascName = {}
+	n = 0
+	for iTrial in range(df.shape[0]):
+		if n > 9:
+			n = 0
+
+		if n < 1:
+			ascName[df.iloc[iTrial, 5][:-6]] = []
+			name = df.iloc[iTrial, 5][:-6]
+		ascName[name].append(df.iloc[iTrial, 5][-6:-4])
+		n += 1
+
+	for i in ascName:
+		for idx in range(len(ascName[i])):
+			ascName[i][idx] = ascName[i][idx].replace("_", "", 1)
+
+	return ascName
+
+
+def get_label(subject, idx, df):
+	label = df[df['code'] == f"{subject}_{idx}.jpg"]['Eq'].to_numpy()
+	assert np.unique(label).size == 1, f"More than one labels found for subject {subject}_{idx}"
+
+	return label[0]
+
+
+def save_images_test(df, includeFixations, includeSaccades, includeTemporalInfo, includeAoi, savePath, alpha=1,
+                cmapSaccades="winter", aggregateFixations=True, setUniformFixations=False, drawHeatmap=False,
+				addImageUnderlay=False, dispsize=(1920, 1920), originalSize=(1920, 1080)
+                     ):
+		ascName = get_asc_file_names(df)
+		fig = plt.figure(figsize=(1920 / 100, 1920 / 100), dpi=100.0, frameon=False)
+		offset_x = (dispsize[0] - originalSize[0]) / 2
+		offset_y = (dispsize[1] - originalSize[1]) / 2
+
+		####### for loop to make images
+		for isub, subject in enumerate(ascName):
+			print(f'\nPROCCESSING {subject}: [{len(ascName[subject])} images]', end=" ")
+			datafile = read_edf(DIR_ASC + subject + '.asc', start='START',
+			                    stop=None, missing=0.0, debug=False)
+
+			for idx in ascName[subject]:
+				print('.', end="")
+
+				savefilename = os.path.join(savePath, str(get_label(subject, idx, df)), f"{str(subject)}_{idx}.jpg") if savePath else None
+				imagefile = os.path.join(DIR_STIMULI, f"stim_{str(idx).zfill(2)}.jpg") if addImageUnderlay else None
+
+				fig, ax = draw_display(fig=fig, dispsize=dispsize, imagefile=imagefile)
+				fig = draw_fixations(
+						fixations=datafile[int(idx) - 1]['events']['Efix'],
+						fig=fig, ax=ax,
+						extraX=offset_x, extraY=offset_y,
+						setUniformFixations=setUniformFixations, alpha=alpha, radius=108,
+				)
+
+				fig = draw_fixations_aggregate(fixations=datafile[int(idx) - 1]['events']['Efix'],
+				                               fig=fig, ax=ax,
+				                               extraX=offset_x, extraY=offset_y,
+				                               radius=108, alpha=alpha,
+				                               nlevelColors=20)
+
+				fig = draw_saccades(datafile[int(idx) - 1]['events']['Esac'],
+				                    fig=fig, ax=ax,
+				                    extraX=offset_x, extraY=offset_y,
+				                    alpha=alpha, linewidth=2
+				                    )
+
+				fig = draw_AOI(fig, ax, extraX=offset_x, extraY=offset_y, radius=108)
+
+				# invert the y axis, as (0,0) is top left on a display
+				ax.invert_yaxis()
+				if savefilename:
+					fig.savefig(savefilename)
+
+
+				# if drawHeatmap:
+				# 	draw_heatmap(None,
+				# 	             datafile[int(idx) - 1]['events']['Efix'] if includeFixations else None,
+				# 	             fig, dispsize=(1920, 1080), originalSize=(1920, 1080),
+				# 	             imagefile=imagefile,
+				# 	             cmap_saccades=cmapSaccades, cmap_fixations='magma',
+				# 	             linewidth=8, radius=108, loop=True, alpha=alpha,
+				# 	             savefilename=savefilename,
+				# 	             preserveSaccadeTemporalInfo=includeTemporalInfo,
+				# 	             drawAOI=includeAoi)
+				# elif aggregateFixations:
+				# 	fig = draw_scanpath_fixations_AOI(
+				# 			datafile[int(idx) - 1]['events']['Esac'] if includeSaccades else None,
+				# 			datafile[int(idx) - 1]['events']['Efix'] if includeFixations else None,
+				# 			fig, dispsize=(1920, 1920), originalSize=(1920, 1080),
+				# 			imagefile=imagefile,
+				# 			cmap_saccades=cmapSaccades, cmap_fixations='magma',
+				# 			linewidth=8, radius=108, loop=True, alpha=alpha,
+				# 			savefilename=savefilename,
+				# 			preserveSaccadeTemporalInfo=includeTemporalInfo,
+				# 			drawAOI=includeAoi
+				# 	)
+				# else:
+				# 	if includeAoi:
+				# 		fig = draw_scanpath_fixations_AOI(
+				# 				datafile[int(idx) - 1]['events']['Esac'] if includeSaccades else None,
+				# 				None,
+				# 				fig, dispsize=(1920, 1920), originalSize=(1920, 1080),
+				# 				cmap_saccades=cmapSaccades, cmap_fixations='magma',
+				# 				linewidth=8, radius=108, loop=False, alpha=alpha,
+				# 				savefilename=None, imagefile=imagefile,
+				# 				preserveSaccadeTemporalInfo=includeTemporalInfo,
+				# 				drawAOI=includeAoi)
+				#
+				# 	fig = draw_scanpath_fixations_color(
+				# 		datafile[int(idx) - 1]['events']['Esac'] if includeSaccades else None,
+				# 		datafile[int(idx) - 1]['events']['Efix'] if includeFixations else None,
+				# 		fig, dispsize=(1920, 1920), originalSize=(1920, 1080),
+				# 		cmap_saccades=cmapSaccades, alpha=alpha,
+				# 		preserveSaccadeTemporalInfo=includeTemporalInfo, defaultSaccadeCol="green",
+				# 		setUniformFixations=setUniformFixations,
+				# 		savefilename=savefilename, imagefile=imagefile,
+				# 		loop=True
+				# 		)
+
+
+def test():
+	deletemePath = "deleteme"
+	for p in [deletemePath]:
+		for l in ["0", "1"]:
+			Path(os.path.join(p, l)).mkdir(parents=True, exist_ok=True)
+	PARAMS = {
+		"includeFixations":               True
+		, "includeSaccades":              False
+		, "includeTemporalInfo":          False
+		, "includeAoi":                   False
+		, "savePath":                     deletemePath
+		, "alpha":                        1
+		, "cmapSaccades":                 "winter"
+		, "aggregateFixations":           True
+		, "setUniformFixations":          False
+		, "drawHeatmap":                  False
+		, "addImageUnderlay":             True}
+
+	save_images_test(df_train
+	            , **PARAMS
+	            )
+
+
 if __name__ == '__main__':
 	seqCmap = ["winter", True]  # [cmapName, isSequential]
 	nonseqCmap = ["prism", False]
 
-	opt = sys.argv[1]
-	# opt="gbstf"
-	# opt = "gbraw"
-
-	if opt == "img":
-		save_heatmaps()
-	if opt == "noimg":
-		save_heatmaps_noimg()
-	if opt == "gbstf":
-		save_saccades_temporal_fixations_with_gameboard()
-	if opt == "gbraw":
-		save_gazeraw_with_gameboard()
+	test()
+	# opt = sys.argv[1]
+	# # opt="gbstf"
+	# # opt = "gbraw"
+	#
+	# if opt == "img":
+	# 	save_heatmaps()
+	# if opt == "noimg":
+	# 	save_heatmaps_noimg()
+	# if opt == "gbstf":
+	# 	save_saccades_temporal_fixations_with_gameboard()
+	# if opt == "gbraw":
+	# 	save_gazeraw_with_gameboard()
 
 	# save_saccades_fixations_oneshape_onecolor()
 	# save_saccades_temporal_fixations_aoi_()
