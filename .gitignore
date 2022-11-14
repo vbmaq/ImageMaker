@@ -177,4 +177,8 @@ About
 Data*/
 ASCFiles/
 dataframes/
+figures/
 *.pt 
+*.png
+*.jpg
+*.csv

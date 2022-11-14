@@ -506,48 +506,9 @@ def draw_heatmap(saccades, fixations, fig, dispsize, originalSize, cmap_saccades
                                 preserveSaccadeTemporalInfo=True, defaultSaccadeCol = "green", drawAOI = True):
 	fig, ax = draw_display(fig=fig, dispsize=dispsize, imagefile=imagefile)
 
-	# to ensure the final image is correct in aspect ratio
-	extraY = (dispsize[1] - originalSize[1]) / 2
-	extraX = (dispsize[0] - originalSize[0]) / 2
-
-	# SACCADES
-	# if saccades:
-	# 	n = len(saccades)
-	#
-	# 	if preserveSaccadeTemporalInfo:
-	# 		colors = matplotlib.cm.get_cmap(cmap_saccades, n)
-	# 		colors = colors(range(n))
-	# 	else:
-	# 		colors = [defaultSaccadeCol for _ in range(n)]
-	#
-	# 	# loop through all saccades
-	# 	i = 0
-	# 	for st, et, dur, sx, sy, ex, ey in saccades:
-	# 		# draw an line between every saccade start and ending
-	# 		# TO MAKE SACCADES ONE COLOUR CHANGES TO GET ONE COLUR SACADE ITS AN ARRAY SO WATCH OUT C = GREEN.
-	# 		ax.plot([sx + extraX, ex + extraX], [sy + extraY, ey + extraY], c=colors[i], linewidth=linewidth,
-	# 		        zorder=49)
-	# 		i += 1
-
-	# # Areas of Interest
-	ownX = [402, 832, 1258]
-	ownY = [350, 615, 880]
-	otherX = [650, 1078, 1500]
-	otherY = [200, 468, 735]
-
 	# color map of fixations
 	nlevelColors = 20  # CHANGE TO 1 GET 1 COLOUR FOR PAPER WAS 20
 	colorsFix = matplotlib.cm.get_cmap(cmap_fixations, nlevelColors)(np.arange(nlevelColors))
-
-	# for coordX in range(len(ownX)):
-	# 	for coordY in range(len(ownY)):
-	# 		if drawAOI:
-	# 			# plot grey circles MAYBE REMOVE FOR PAPER !
-	# 			circle1 = plt.Circle((ownX[coordX] + extraX, ownY[coordY] + extraY), radius, color='dimgray', zorder=48)
-	# 			ax.add_patch(circle1)
-	# 			circle2 = plt.Circle((otherX[coordX] + extraX, otherY[coordY] + extraY), radius, color='darkgray',
-	# 			                     zorder=48)
-	# 			ax.add_patch(circle2)
 
 	if fixations is not None:
 		fix = parse_fixations(fixations)
@@ -561,67 +522,6 @@ def draw_heatmap(saccades, fixations, fig, dispsize, originalSize, cmap_saccades
 		zi = k(np.vstack([xi.flatten(), yi.flatten()]))
 
 		ax.pcolormesh(xi, yi, zi.reshape(xi.shape), alpha=1 if imagefile is None else 0.5  , cmap='PuRd')
-
-
-		#
-		# for coordX in range(len(ownX)):
-		# 	for coordY in range(len(ownY)):
-		#
-		# 		# FIXATIONS
-		# 		# plot Own
-		# 		# TO MAKE SACCADES ONE COLOUR CHANGES TO GET ONE COLUR SACADE ITS AN ARRAY SO WATCH OUT C = GREEN. COLOR=SHAPE_ROI['own'][1]
-		# 		fixOccOwn = sum(((ownX[coordX] + extraX - radius < fix['x'] + extraX) & (
-		# 				fix['x'] + extraX < ownX[coordX] + extraY + radius)) &
-		# 		                ((ownY[coordY] + extraY - radius < fix['y'] + extraY) & (
-		# 				                fix['y'] + extraY < ownY[coordY] + extraY + radius)))
-		# 		if nlevelColors > fixOccOwn > 0:
-		# 			ax.scatter(ownX[coordX] + extraX, ownY[coordY] + extraY, s=SHAPE_ROI['own'][2] * 1000,
-		# 			           color=colorsFix[fixOccOwn],
-		# 			           marker=SHAPE_ROI['own'][0], alpha=alpha, edgecolors='white', zorder=50)
-		# 		elif fixOccOwn >= nlevelColors:
-		# 			ax.scatter(ownX[coordX] + extraX, ownY[coordY] + extraY, s=SHAPE_ROI['own'][2] * 1000,
-		# 			           color=colorsFix[nlevelColors - 1],
-		# 			           marker=SHAPE_ROI['own'][0], alpha=alpha, edgecolors='white', zorder=50)
-		#
-		# 		# plot Other
-		# 		# TO MAKE SACCADES ONE COLOUR CHANGES TO GET ONE COLUR SACADE ITS AN ARRAY SO WATCH OUT C = GREEN. COLOR=SHAPE_ROI['OTHER'][1]
-		# 		fixOccOther = sum(((otherX[coordX] + extraX - radius < fix['x'] + extraX) & (
-		# 				fix['x'] + extraX < otherX[coordX] + extraX + radius)) &
-		# 		                  ((otherY[coordY] + extraY - radius < fix['y'] + extraY) & (
-		# 				                  fix['y'] + extraY < otherY[coordY] + extraY + radius)))
-		# 		if nlevelColors > fixOccOther > 0:
-		# 			ax.scatter(otherX[coordX] + extraX, otherY[coordY] + extraY, s=SHAPE_ROI['other'][2] * 1000,
-		# 			           color=colorsFix[fixOccOther],
-		# 			           marker=SHAPE_ROI['other'][0], alpha=alpha, edgecolors='white', zorder=50)
-		# 		elif fixOccOther >= nlevelColors:
-		# 			ax.scatter(otherX[coordX] + extraX, otherY[coordY] + extraY, s=SHAPE_ROI['other'][2] * 1000,
-		# 			           color=colorsFix[nlevelColors - 1],
-		# 			           marker=SHAPE_ROI['other'][0], alpha=alpha, edgecolors='white', zorder=50)
-		#
-		# # plot other, a longwinded way but I cannot seem to index the outside
-		# for i in range(len(fixations)):
-		# 	# own
-		# 	if (((402 - radius < fix['x'][i] < 402 + radius) or
-		# 	     (832 - radius < fix['x'][i] < 832 + radius) or
-		# 	     (1258 - radius < fix['x'][i] < 1258 + radius)) & (
-		# 			(350 + extraY - radius < fix['y'][i] + extraY < 350 + extraY + radius) or
-		# 			(615 + extraY - radius < fix['y'][i] + extraY < 615 + extraY + radius) or
-		# 			(880 + extraY - radius < fix['y'][i] + extraY < 880 + extraY + radius))):
-		# 		continue
-		# 	# other
-		# 	elif (((650 - radius < fix['x'][i] < 650 + radius) or
-		# 	       (1078 - radius < fix['x'][i] < 1078 + radius) or
-		# 	       (1500 - radius < fix['x'][i] < 1500 + radius)) & (
-		# 			      (200 + extraY - radius < fix['y'][i] + extraY < 200 + extraY + radius) or
-		# 			      (468 + extraY - radius < fix['y'][i] + extraY < 468 + extraY + radius) or
-		# 			      (735 + extraY - radius < fix['y'][i] + extraY < 735 + extraY + radius))):
-		# 		continue
-		#
-		# 	# outside
-		# 	else:
-		# 		ax.scatter(fix['x'][i], fix['y'][i] + extraY, s=SHAPE_ROI['outside'][2] * 1000,
-		# 		           c=SHAPE_ROI['outside'][1],
-		# 		           marker=SHAPE_ROI['outside'][0], alpha=alpha, edgecolors='white', zorder=50)
 
 	# invert the y axis, as (0,0) is top left on a display
 	ax.invert_yaxis()
