@@ -248,8 +248,7 @@ def save_images(df, includeFixations, includeSaccades, includeTemporalInfo, incl
 				imagefile = None
 			if drawHeatmap:
 				draw_heatmap(None,
-						datafile[int(idx) - 1]['events']['Efix'] if includeFixations else None,
-						fig, dispsize=(1920, 1080), originalSize=(1920, 1080),
+				             fig, dispsize=(1920, 1080), originalSize=(1920, 1080),
 				        imagefile=imagefile,
 						cmap_saccades=cmapSaccades, cmap_fixations='magma',
 						linewidth=8, radius=108, loop=True, alpha=alpha,
@@ -713,26 +712,33 @@ def save_images_test(df, includeFixations, includeSaccades, includeTemporalInfo,
 				imagefile = os.path.join(DIR_STIMULI, f"stim_{str(idx).zfill(2)}.jpg") if addImageUnderlay else None
 
 				fig, ax = draw_display(fig=fig, dispsize=dispsize, imagefile=imagefile)
-				fig = draw_fixations(
+				draw_fixations(
 						fixations=datafile[int(idx) - 1]['events']['Efix'],
-						fig=fig, ax=ax,
-						extraX=offset_x, extraY=offset_y,
-						setUniformFixations=setUniformFixations, alpha=alpha, radius=108,
+						ax=ax,
+						x_offset=offset_x, y_offset=offset_y,
+						set_uniform_fixations=setUniformFixations, alpha=alpha, radius=108,
 				)
 
-				fig = draw_fixations_aggregate(fixations=datafile[int(idx) - 1]['events']['Efix'],
-				                               fig=fig, ax=ax,
-				                               extraX=offset_x, extraY=offset_y,
+				draw_fixations_aggregate(fixations=datafile[int(idx) - 1]['events']['Efix'],
+				                         ax=ax,
+				                               x_offset=offset_x, y_offset=offset_y,
 				                               radius=108, alpha=alpha,
-				                               nlevelColors=20)
+				                               n_level_colors=20)
 
-				fig = draw_saccades(datafile[int(idx) - 1]['events']['Esac'],
-				                    fig=fig, ax=ax,
-				                    extraX=offset_x, extraY=offset_y,
+				draw_saccades(datafile[int(idx) - 1]['events']['Esac'],
+				              ax=ax,
+				                    x_offset=offset_x, y_offset=offset_y,
 				                    alpha=alpha, linewidth=2
 				                    )
 
-				fig = draw_AOI(fig, ax, extraX=offset_x, extraY=offset_y, radius=108)
+				draw_AOI(ax, x_offset=offset_x, y_offset=offset_y, radius=108)
+
+				x = datafile[int(idx) - 1]['x']
+				y = datafile[int(idx) - 1]['y']
+
+				draw_gaze(ax, x, y, offset_x, offset_y, marker="o", color="purple", alpha=1)
+
+
 
 				# invert the y axis, as (0,0) is top left on a display
 				ax.invert_yaxis()

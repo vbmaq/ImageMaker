@@ -93,10 +93,10 @@ SHAPE_ROI_UNIF = {"own":     ['^', 'green', 1.75],
                   "outside": ['^', 'green', 1.75],
                   }
 
-AOI_COL = {"own": 'dimgray',
+AOI_COL = {"own":   'dimgray',
            "other": 'darkgray'
 
-}
+           }
 
 AOI_LOC = {"own":   np.array(np.meshgrid([402, 832, 1258],
                                          [350, 615, 880]
@@ -145,6 +145,7 @@ matplotlib.rc('font', **FONT)
 # # # # #
 # FUNCTIONS
 
+#<editor-fold desc="legacy">
 def draw_scanpath_color(saccades, fig, dispsize, originalSize, cmap_saccades='winter', linewidth=2, imagefile=None,
                         loop=None, alpha=0.5, savefilename=None):
 	"""Draws a scanpath: a series of lines between fixations,
@@ -533,40 +534,6 @@ def draw_scanpath_fixations_AOI(saccades, fixations, fig, dispsize, originalSize
 				           c=SHAPE_ROI['outside'][1],
 				           marker=SHAPE_ROI['outside'][0], alpha=alpha, edgecolors='white', zorder=50)
 
-		# invert the y axis, as (0,0) is top left on a display
-	ax.invert_yaxis()
-	# save the figure if a file name was provided
-	if savefilename is not None:
-		fig.savefig(savefilename)
-	if loop is not None:
-		fig.clf()
-	return fig
-
-
-def draw_heatmap(saccades, fixations, fig, dispsize, originalSize, cmap_saccades='winter',
-                 cmap_fixations='magma',
-                 linewidth=2, radius=108, imagefile=None, loop=None, alpha=0.5, savefilename=None,
-
-                 preserveSaccadeTemporalInfo=True, defaultSaccadeCol="green", drawAOI=True):
-	fig, ax = draw_display(fig=fig, dispsize=dispsize, imagefile=imagefile)
-
-	# color map of fixations
-	nlevelColors = 20  # CHANGE TO 1 GET 1 COLOUR FOR PAPER WAS 20
-	colorsFix = matplotlib.cm.get_cmap(cmap_fixations, nlevelColors)(np.arange(nlevelColors))
-
-	if fixations is not None:
-		fix = parse_fixations(fixations)
-
-		x = fix['x'].repeat(100)
-		y = fix['y'].repeat(100)
-
-		nbins = 300
-		k = kde.gaussian_kde([x, y])
-		xi, yi = np.mgrid[x.min():x.max():nbins * 1j, y.min():y.max():nbins * 1j]
-		zi = k(np.vstack([xi.flatten(), yi.flatten()]))
-
-		ax.pcolormesh(xi, yi, zi.reshape(xi.shape), alpha=1 if imagefile is None else 0.5, cmap='PuRd')
-
 	# invert the y axis, as (0,0) is top left on a display
 	ax.invert_yaxis()
 	# save the figure if a file name was provided
@@ -575,32 +542,43 @@ def draw_heatmap(saccades, fixations, fig, dispsize, originalSize, cmap_saccades
 	if loop is not None:
 		fig.clf()
 	return fig
+#</editor-fold>
 
 
-def draw_fixations(fixations, fig, ax, extraX, extraY,
-                   radius=108, setUniformFixations=False, alpha=0.5,
+def draw_heatmap(fixations, ax, alpha=1, cmap='PuRd', nbins=300, sample_strength=100):
+	fix = parse_fixations(fixations)
+
+	x = fix['x'].repeat(sample_strength)
+	y = fix['y'].repeat(sample_strength)
+
+	k = kde.gaussian_kde([x, y])
+	xi, yi = np.mgrid[x.min():x.max():nbins * 1j, y.min():y.max():nbins * 1j]
+	zi = k(np.vstack([xi.flatten(), yi.flatten()]))
+
+	ax.pcolormesh(xi, yi, zi.reshape(xi.shape), alpha=alpha, cmap=cmap)
+
+
+def draw_fixations(fixations, ax, x_offset=0, y_offset=0,
+                   radius=108, set_uniform_fixations=False, alpha=0.5,
                    ):
-	aois_offset = offset_aoi(AOI_LOC, extraX, extraY)
+	aois_offset = offset_aoi(AOI_LOC, x_offset, y_offset)
 
 	# FIXATIONS
-	if fixations:
-		fix = parse_fixations(fixations)
-		for i in range(len(fixations)):
-			_aoi = locate_aoi(fix['x'][i] + extraX, fix['y'][i] + extraY, aoi_dict=aois_offset, radius=radius,
-			                  default="outside")
-			ax.scatter(fix['x'][i] + extraX, fix['y'][i] + extraY,
-			           s=get_shape_roi(_aoi, setUniformFixations)[2] * 1000,
-			           c=get_shape_roi(_aoi, setUniformFixations)[1],
-			           marker=get_shape_roi(_aoi, setUniformFixations)[0], alpha=alpha, edgecolors='white',
-			           zorder=50)
-
-	return fig
+	fix = parse_fixations(fixations)
+	for i in range(len(fixations)):
+		_aoi = locate_aoi(fix['x'][i] + x_offset, fix['y'][i] + y_offset, aoi_dict=aois_offset, radius=radius,
+		                  default="outside")
+		ax.scatter(fix['x'][i] + x_offset, fix['y'][i] + y_offset,
+		           s=get_shape_roi(_aoi, set_uniform_fixations)[2] * 1000,
+		           c=get_shape_roi(_aoi, set_uniform_fixations)[1],
+		           marker=get_shape_roi(_aoi, set_uniform_fixations)[0], alpha=alpha, edgecolors='white',
+		           zorder=50)
 
 
-def draw_fixations_aggregate(fixations, fig, ax, extraX, extraY, radius=108, setUniformFixations=False,
-                             alpha=0.5, cmap_fixations='magma', nlevelColors=20):
+def draw_fixations_aggregate(fixations, ax, x_offset=0, y_offset=0, radius=108, set_uniform_fixations=False,
+                             alpha=0.5, cmap_fixations='magma', n_level_colors=20):
 	# color map of fixations
-	colorsFix = matplotlib.cm.get_cmap(cmap_fixations, nlevelColors)(np.arange(nlevelColors))
+	colorsFix = matplotlib.cm.get_cmap(cmap_fixations, n_level_colors)(np.arange(n_level_colors))
 
 	if fixations is not None:
 		fix = parse_fixations(fixations)
@@ -608,58 +586,70 @@ def draw_fixations_aggregate(fixations, fig, ax, extraX, extraY, radius=108, set
 		for key, aois in AOI_LOC.items():
 			for aoi in aois:
 				concentration = get_aoi_concentration(aoi_x=aoi[0], aoi_y=aoi[1], radius=radius,
-				                                      xs=fix['x'], ys=fix['y'], offset_x=extraX, offset_y=extraY)
+				                                      xs=fix['x'], ys=fix['y'], offset_x=x_offset, offset_y=y_offset)
 				if concentration <= 0:
 					continue
-				elif nlevelColors > concentration > 0:
+				elif n_level_colors > concentration > 0:
 					c_ = colorsFix[concentration]
 				else:  # concentration >= nlevelColors:
-					c_ = colorsFix[nlevelColors - 1]
+					c_ = colorsFix[n_level_colors - 1]
 
-				ax.scatter(aoi[0] + extraX, aoi[1] + extraY, s=SHAPE_ROI['own'][2] * 1000,
+				ax.scatter(aoi[0] + x_offset, aoi[1] + y_offset, s=SHAPE_ROI['own'][2] * 1000,
 				           color=c_,
 				           marker=SHAPE_ROI[key][0], alpha=alpha, edgecolors='white', zorder=50)
 
 		# plot outside aoi
-		aois_offset = offset_aoi(AOI_LOC, extraX, extraY)
+		aois_offset = offset_aoi(AOI_LOC, x_offset, y_offset)
 
 		for i in range(len(fixations)):
-			_aoi = locate_aoi(fix['x'][i] + extraX, fix['y'][i] + extraY, aoi_dict=aois_offset, radius=radius,
+			_aoi = locate_aoi(fix['x'][i] + x_offset, fix['y'][i] + y_offset, aoi_dict=aois_offset, radius=radius,
 			                  default="outside")
 			if _aoi not in list(AOI_LOC.keys()):
-				ax.scatter(fix['x'][i] + extraX, fix['y'][i] + extraY,
-				           s=get_shape_roi(_aoi, setUniformFixations)[2] * 1000,
-				           c=get_shape_roi(_aoi, setUniformFixations)[1],
-				           marker=get_shape_roi(_aoi, setUniformFixations)[0], alpha=alpha, edgecolors='white',
+				ax.scatter(fix['x'][i] + x_offset, fix['y'][i] + y_offset,
+				           s=get_shape_roi(_aoi, set_uniform_fixations)[2] * 1000,
+				           c=get_shape_roi(_aoi, set_uniform_fixations)[1],
+				           marker=get_shape_roi(_aoi, set_uniform_fixations)[0], alpha=alpha, edgecolors='white',
 				           zorder=50)
 
-	return fig
 
-
-def draw_saccades(saccades, fig, ax, extraX, extraY,
-                  preserveSaccadeTemporalInfo=True, cmap_saccades='winter', defaultSaccadeCol='green'
+def draw_saccades(saccades, ax, x_offset=0, y_offset=0,
+                  preserve_saccade_temporal_info=True, cmap_saccades='winter', default_color='green'
                   , alpha=0.5, linewidth=2):
+	"""
+
+	:param saccades: sequence of (start time, end time, duration, start x, start y, end x, end y)
+	:param ax:
+	:param x_offset:
+	:param y_offset:
+	:param preserve_saccade_temporal_info: uses cmap_saccades if set to True else uses a default color
+	:param cmap_saccades: default='winter' choose a sequential cmap here otherwise there's no temporal info
+	:param default_color: this value is ignored if preserve_saccade_temporal_info is True
+	:param alpha:
+	:param linewidth:
+	:return: fig
+	"""
 	n = len(saccades)
 
-	if preserveSaccadeTemporalInfo:
+	if preserve_saccade_temporal_info:
 		colors = matplotlib.cm.get_cmap(cmap_saccades, n)
 		colors = colors(range(n))
 	else:
-		colors = [defaultSaccadeCol for _ in range(n)]
+		colors = [default_color for _ in range(n)]
 
 	# loop through all saccades
 
-	for i, (st, et, dur, sx, sy, ex, ey) in enumerate(saccades):
-		ax.plot([sx + extraX, ex + extraX], [sy + extraY, ey + extraY], c=colors[i], linewidth=linewidth,
+	for i, (_, _, _, sx, sy, ex, ey) in enumerate(saccades):
+		ax.plot([sx + x_offset, ex + x_offset], [sy + y_offset, ey + y_offset], c=colors[i], linewidth=linewidth,
 		        zorder=49, alpha=alpha)
 
-	return fig
 
-
-def draw_AOI(fig, ax, extraX, extraY, radius):
+def draw_AOI(ax, x_offset=0, y_offset=0, radius=108):
 	for key, aois in AOI_LOC.items():
 		for aoi in aois:
-			circle = plt.Circle((aoi[0] + extraX, aoi[1] + extraY), radius, color=AOI_COL.get(key), zorder=48)
+			circle = plt.Circle((aoi[0] + x_offset, aoi[1] + y_offset), radius, color=AOI_COL.get(key), zorder=48)
 			ax.add_patch(circle)
 
-	return fig
+
+def draw_gaze(ax, x, y, x_offset=0, y_offset=0, color='white', marker='o', size=1.75, alpha=0.5, linewidth=0):
+	ax.scatter(x + x_offset, y + y_offset, c=color, marker=marker, s=size, alpha=alpha, linewidth=linewidth)
+
