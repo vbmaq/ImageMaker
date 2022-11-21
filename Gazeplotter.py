@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Dict, List, Union
 import numpy as np
 import matplotlib
@@ -120,6 +121,15 @@ def get_aoi_concentration(aoi_x, aoi_y, radius, xs, ys, offset_x, offset_y):
 	return sum(within_x & within_y)
 
 
+class Draw(Enum):
+	AOI = "draw_AOI"
+	HEATMAP = "draw_heatmap"
+	GAZE = "draw_gaze"
+	SACCADES = "draw_saccades"
+	FIXATIONS = "draw_fixations"
+	FIXATIONS_AGG = "draw_fixations_aggregate"
+
+
 class GazePlotter:
 	fixations: Union[ndarray, None]
 	saccades: Union[ndarray, None]
@@ -162,6 +172,10 @@ class GazePlotter:
 		self.gaze: Union[ndarray, None] = np.array(gaze)
 
 		self.save_dir = save_dir
+
+	def run_pipeline(self, pipe: Dict):
+		for fun, params in pipe.items():
+			getattr(self, fun)(**params)
 
 	def draw_heatmap(self, alpha=1, cmap='PuRd', nbins=300, sample_strength=100):
 

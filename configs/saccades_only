@@ -1,0 +1,12 @@
+pipeline:
+    draw_saccades:
+        preserve_saccade_temporal_info: False
+        linewidth: 10
+        alpha: 1
+
+
+save_dir: deleteme/saccades_only
+
+labels:
+    - "0"
+    - "1"
