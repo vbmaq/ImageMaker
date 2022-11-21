@@ -87,7 +87,7 @@ for category in [TRAIN, TEST, VAL]:
     df = pd.DataFrame({'X': Xs, 'y': Ys})
 
     print(f"Pickling Dataset {category}...")
-    with open(os.path.join('dataframes', f'{dataset}_{category}.pkl'), "wb") as file:
+    with open(os.path.join('archive/dataframes', f'{dataset}_{category}.pkl'), "wb") as file:
         pickle.dump(df, file)
 
     # with open(f'{dataset}_{category}.pkl', "rb") as file:

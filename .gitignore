@@ -176,8 +176,10 @@ About
 #
 Data*/
 ASCFiles/
-dataframes/
-figures/
+archive/dataframes/
+archive/figures/
+archive/
+archive/*
 *.pt 
 *.png
 *.jpg

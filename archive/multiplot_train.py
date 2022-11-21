@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from ImagePrep import df_train
+from archive.ImagePrep import df_train
 from multiplotter import save_rawGaze_images
 
 if __name__ == '__main__':
