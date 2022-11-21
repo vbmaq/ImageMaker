@@ -2,11 +2,12 @@ import pandas as pd
 import seaborn as sns
 from util import *
 from EdfReader import read_edf
-from Gazeplotter import *
+from Gazeplotter_old import *
 from pathlib import Path
 from multiplotter import TPlotter
 import sys
 
+from Gazeplotter import GazePlotter
 
 def throwForbidden():
 	raise Exception("THIS FUNCTION IS FORBIDDEN AS THE DATA HAS ALREADY BEEN COMPILED.")
@@ -29,6 +30,29 @@ DIR_STIMULI = "stimoli-phase-1/"
 
 ### set location of ASCfiles used for making the images within parent path
 DIR_ASC = os.path.join(PARENT_PATH, 'ASCFiles/fase1/')
+
+### AOI info
+SHAPE_ROI = {"own":     ['^', 'blue', 1.75],
+             "other":   ['D', 'lime', 1.75],
+             "outside": ['.', 'fuchsia', 1],
+             }
+
+SHAPE_ROI_UNIF = {"own":     ['^', 'green', 1.75],
+                  "other":   ['^', 'green', 1.75],
+                  "outside": ['^', 'green', 1.75],
+                  }
+
+AOI_COL = {"own":   'dimgray',
+           "other": 'darkgray'
+           }
+
+AOI_LOC = {"own":   np.array(np.meshgrid([402, 832, 1258],
+                                         [350, 615, 880]
+                                         )).T.reshape(-1, 2),
+           "other": np.array(np.meshgrid([650, 1078, 1500],
+                                         [200, 468, 735]
+                                         )).T.reshape(-1, 2)
+           }
 
 
 ### load data
@@ -699,6 +723,15 @@ def save_images_test(df, includeFixations, includeSaccades, includeTemporalInfo,
 		fig = plt.figure(figsize=(1920 / 100, 1920 / 100), dpi=100.0, frameon=False)
 		offset_x, offset_y = calculate_offset(dispsize, originalSize)
 
+		gp = GazePlotter(
+		                 shape_roi=SHAPE_ROI,
+		                 shape_roi_unif=SHAPE_ROI_UNIF,
+		                 aoi_col=AOI_COL,
+		                 aoi_loc=AOI_LOC,
+		                 x_offset=offset_x,
+		                 y_offset=offset_y,
+		                 save_dir=savePath)
+
 		####### for loop to make images
 		for isub, subject in enumerate(ascName):
 			print(f'\nPROCCESSING {subject}: [{len(ascName[subject])} images]', end=" ")
@@ -708,42 +741,69 @@ def save_images_test(df, includeFixations, includeSaccades, includeTemporalInfo,
 			for idx in ascName[subject]:
 				print('.', end="")
 
-				savefilename = os.path.join(savePath, str(get_label(subject, idx, df)), f"{str(subject)}_{idx}.jpg") if savePath else None
+				savefilename = os.path.join(str(get_label(subject, idx, df)), f"{str(subject)}_{idx}.jpg") if savePath else None
 				imagefile = os.path.join(DIR_STIMULI, f"stim_{str(idx).zfill(2)}.jpg") if addImageUnderlay else None
 
 				fig, ax = draw_display(fig=fig, dispsize=dispsize, imagefile=imagefile)
-				draw_fixations(
-						fixations=datafile[int(idx) - 1]['events']['Efix'],
-						ax=ax,
-						x_offset=offset_x, y_offset=offset_y,
-						set_uniform_fixations=setUniformFixations, alpha=alpha, radius=108,
-				)
 
-				draw_fixations_aggregate(fixations=datafile[int(idx) - 1]['events']['Efix'],
-				                         ax=ax,
-				                               x_offset=offset_x, y_offset=offset_y,
-				                               radius=108, alpha=alpha,
-				                               n_level_colors=20)
+				fixations = np.array(datafile[int(idx) - 1]['events']['Efix'])[:, [3,4,2]]
 
-				draw_saccades(datafile[int(idx) - 1]['events']['Esac'],
-				              ax=ax,
-				                    x_offset=offset_x, y_offset=offset_y,
-				                    alpha=alpha, linewidth=2
-				                    )
+				gazes = np.array( [datafile[int(idx) - 1]['x'], datafile[int(idx) - 1]['y']]).T
 
-				draw_AOI(ax, x_offset=offset_x, y_offset=offset_y, radius=108)
+				gp.fixations = fixations
+				gp.saccades = datafile[int(idx) - 1]['events']['Esac']
+				gp.gaze = gazes
+				gp.fig = fig
+				gp.ax = ax
 
-				x = datafile[int(idx) - 1]['x']
-				y = datafile[int(idx) - 1]['y']
+				gp.draw_AOI()
+				gp.draw_heatmap()
+				gp.draw_gaze()
+				gp.draw_saccades()
+				gp.draw_fixations()
+				gp.draw_fixations_aggregate()
 
-				draw_gaze(ax, x, y, offset_x, offset_y, marker="o", color="purple", alpha=1)
+				gp.save_fig(savefilename)
+				gp.clear_fig()
+
+
+				# draw_fixations(
+				# 		fixations=datafile[int(idx) - 1]['events']['Efix'],
+				# 		ax=ax,
+				# 		x_offset=offset_x, y_offset=offset_y,
+				# 		set_uniform_fixations=setUniformFixations, alpha=alpha, radius=108,
+				# )
+				#
+				# draw_fixations_aggregate(fixations=datafile[int(idx) - 1]['events']['Efix'],
+				#                          ax=ax,
+				#                                x_offset=offset_x, y_offset=offset_y,
+				#                                radius=108, alpha=alpha,
+				#                                n_level_colors=20)
+				#
+				# draw_saccades(datafile[int(idx) - 1]['events']['Esac'],
+				#               ax=ax,
+				#                     x_offset=offset_x, y_offset=offset_y,
+				#                     alpha=alpha, linewidth=2
+				#                     )
+				#
+				# draw_AOI(ax, x_offset=offset_x, y_offset=offset_y, radius=108)
+				#
+				# x = datafile[int(idx) - 1]['x']
+				# y = datafile[int(idx) - 1]['y']
+				#
+				# draw_gaze(ax, x, y, offset_x, offset_y,
+				#           marker="o", color="purple", alpha=1)
+				#
+				# draw_heatmap(fixations=datafile[int(idx) - 1]['events']['Efix'], ax=ax,
+				#              x_offset=offset_x, y_offset=offset_y,
+				#              alpha=1, cmap='PuRd', nbins=300, sample_strength=100)
 
 
 
 				# invert the y axis, as (0,0) is top left on a display
 				ax.invert_yaxis()
-				if savefilename:
-					fig.savefig(savefilename)
+				# if savefilename:
+				# 	fig.savefig(savefilename)
 
 
 				# if drawHeatmap:
