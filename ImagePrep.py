@@ -122,20 +122,23 @@ def plot_scanpaths(df, savePath, pipeline,
 		print(f'\nPROCCESSING {subject}: [{len(ascName[subject])} images]', end=" ")
 		datafile = read_edf(DIR_ASC + subject + '.asc', start='START',
 		                    stop=None, missing=0.0, debug=False)
-
 		for idx in ascName[subject]:
 			print('.', end="")
 
+			# ============================ Prepare file stuff =============================
 			savefilename = create_savefilename(dir=str(get_label(subject, idx, df)), subject=subject, idx=idx) if savePath else None
 			imagefile = retrieve_image_file(idx) if add_image_underlay else None
 
-			fig, ax = GazePlotter.draw_display(fig=fig, display_size=display_size, image_file=imagefile, background_value=backdrop_value)
-
+			# ================== Retrieve gaze information from datafile ==================
+			saccades = datafile[int(idx) - 1]['events']['Esac']
 			fixations = np.array(datafile[int(idx) - 1]['events']['Efix'])[:, [3, 4, 2]]
 			gazes = np.array([datafile[int(idx) - 1]['x'], datafile[int(idx) - 1]['y']]).T
 
+			# ========================= Gaze plotting begins here =========================
+			fig, ax = GazePlotter.draw_display(fig=fig, display_size=display_size, image_file=imagefile,
+			                                   background_value=backdrop_value)
 			gp.fixations = fixations
-			gp.saccades = datafile[int(idx) - 1]['events']['Esac']
+			gp.saccades = saccades
 			gp.gaze = gazes
 			gp.fig = fig
 			gp.ax = ax
