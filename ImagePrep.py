@@ -8,13 +8,12 @@ from pathlib import Path
 import configparser
 import matplotlib.pyplot as plt
 
-from Gazeplotter import GazePlotter, calculate_offset, draw_display
+from Gazeplotter import GazePlotter, calculate_offset
 
 
 # <editor-fold desc="Load configs">
 cfg = configparser.ConfigParser()
 cfg.read('configs/imageprep.ini')
-
 
 PARENT_PATH = cfg['PATH']['parent_path']
 
@@ -36,6 +35,17 @@ df_train = pd.read_csv(PATH_TRAIN_CSV)
 def throwForbidden():
 	raise Exception("THIS FUNCTION IS FORBIDDEN AS THE DATA HAS ALREADY BEEN COMPILED.")
 
+# <editor-fold desc="Dataset-specific code">
+"""
+This section contains code specific to the dataset used for our paper but can easily be changed to fit your needs. 
+Worth checking out are the following:
+
+- get_label : returns the label given a dataframe, subject and index 
+- create_label_dirs : builds a directory for your image files as separated by its labels (this is compatible with
+	pytorch's ImageFolder https://pytorch.org/vision/stable/generated/torchvision.datasets.ImageFolder.html)
+- plot_scanpaths : shows an example of how to use Gazeplotter    
+
+"""
 
 def get_asc_file_names(df: pd.DataFrame):
 	"""
@@ -75,9 +85,22 @@ def create_label_dirs(labels, from_dir):
 			Path(os.path.join(p, l)).mkdir(parents=True, exist_ok=True)
 
 
+def retrieve_image_file(idx):
+	"""Finds image file from stimuli directory given an index"""
+	# image file index are in 0X format
+	image_file = f"stim_{str(idx).zfill(2)}.jpg"
+
+	return os.path.join(DIR_STIMULI, image_file)
+
+
+def create_savefilename(dir, subject, idx):
+	return os.path.join(dir,
+	             f"{str(subject)}_{idx}.jpg")
+
+
 def plot_scanpaths(df, savePath, pipeline,
                    add_image_underlay=False,
-				   backdrop_value=0,
+                   backdrop_value=0,
                    display_size=(1920, 1920), original_size=(1920, 1080), dpi=100,
                    ):
 	ascName = get_asc_file_names(df)
@@ -103,11 +126,10 @@ def plot_scanpaths(df, savePath, pipeline,
 		for idx in ascName[subject]:
 			print('.', end="")
 
-			savefilename = os.path.join(str(get_label(subject, idx, df)),
-			                            f"{str(subject)}_{idx}.jpg") if savePath else None
-			imagefile = os.path.join(DIR_STIMULI, f"stim_{str(idx).zfill(2)}.jpg") if add_image_underlay else None
+			savefilename = create_savefilename(dir=str(get_label(subject, idx, df)), subject=subject, idx=idx) if savePath else None
+			imagefile = retrieve_image_file(idx) if add_image_underlay else None
 
-			fig, ax = draw_display(fig=fig, display_size=display_size, image_file=imagefile, background_value=backdrop_value)
+			fig, ax = GazePlotter.draw_display(fig=fig, display_size=display_size, image_file=imagefile, background_value=backdrop_value)
 
 			fixations = np.array(datafile[int(idx) - 1]['events']['Efix'])[:, [3, 4, 2]]
 			gazes = np.array([datafile[int(idx) - 1]['x'], datafile[int(idx) - 1]['y']]).T
@@ -122,8 +144,7 @@ def plot_scanpaths(df, savePath, pipeline,
 			gp.run_pipeline(pipeline)
 
 
-
-def test2(config):
+def run(config):
 	with open(config, "r") as stream:
 		config = yaml.safe_load(stream)
 
@@ -131,26 +152,27 @@ def test2(config):
 		pipeline = config["pipeline"]
 		labels = config["labels"]
 
-		kwargs = {"add_image_underlay": config.get("has_background", False),
-		          "backdrop_value": config.get("backdrop_value", 0)
-		          }
-
 		save_train = os.path.join(save_dir, "train")
 		save_val = os.path.join(save_dir, "validate")
 		save_test = os.path.join(save_dir, "test")
 
 		create_label_dirs(labels, [save_train, save_val, save_test])
 
+		# uniform parameters for plot_scanpaths
+		kwargs = {"add_image_underlay": config.get("has_background", False),
+		          "backdrop_value":     config.get("backdrop_value", 0)
+		          }
 		plot_scanpaths(df_train, savePath=save_train, pipeline=pipeline, **kwargs)
 		plot_scanpaths(df_val, savePath=save_val, pipeline=pipeline, **kwargs)
 		plot_scanpaths(df_test, savePath=save_test, pipeline=pipeline, **kwargs)
 
+# </editor-fold>
 
 if __name__ == '__main__':
 	seqCmap = ["winter", True]  # [cmapName, isSequential]
 	nonseqCmap = ["prism", False]
 
-	test2("configs/image_cfgs/image_config_template.yml" )
+	run("configs/image_cfgs/image_config_template.yml")
 
 
 

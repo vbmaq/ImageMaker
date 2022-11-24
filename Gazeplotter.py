@@ -16,76 +16,6 @@ COLOR = 1
 SIZE = 2
 
 
-def draw_display(fig, display_size=(1920, 1080), image_file:str=None, return_offset=False, background_value=.0):
-	"""
-	Returns a matplotlib.plt Figure and its axes, with a size of dispsize, and optionally with an image drawn onto it
-	
-	:param fig: fig of plt.fig
-	:param display_size: tuple or list indicating the size of the display,
-			e.g. (1024,768)
-	:param image_file: full path to an image file over which the heatmap_wimg
-			is to be laid, or None for no image; NOTE: the image
-			may be smaller than the display size, the function
-			assumes that the image was presented at the centre of
-			the display (default = None)
-	:param return_offset: if True, function returns the x and y offset of the centered image on the figure
-	:param background_value: greyscale value [0..1] where the maximum is white
-	:return:- fig, ax: matplotlib.plt Figure and its axes: field of zeros
-			with a size of dispsize, and an image drawn onto it
-			if an imagefile was passed
-			- fig, ax, x_offset, y_offset: if returnOffset is True
-
-	"""
-	x, y = 0,0
-	# construct screen (black background)
-	data_type = 'float32'
-	if image_file != None:
-		_, ext = os.path.splitext(image_file)
-		ext = ext.lower()
-		data_type = 'float32' if ext == '.png' else 'uint8'
-	screen = np.zeros((display_size[1], display_size[0], 3), dtype=data_type) + background_value
-
-
-	# if an image location has been passed, draw the image
-	if image_file != None:
-		# check if the path to the image exists
-		if not os.path.isfile(image_file):
-			raise Exception("ERROR in draw_display: imagefile not found at '%s'" % image_file)
-		# load image
-		img = plt.imread(image_file)
-
-		# flip image over the horizontal axis
-		# (do not do so on Windows, as the image appears to be loaded with
-		# the correct side up there; what's up with that? :/)
-		# if not os.name == 'nt':
-		# img = np.flipud(img)
-		# width and height of the image
-		w, h = len(img[0]), len(img)
-		# x and y position of the image on the display
-		x = int(display_size[0] / 2 - w / 2)
-		y = int(display_size[1] / 2 - h / 2)
-		# draw the image on the screen
-		screen[y:y + h, x:x + w, :] += img
-	# dots per inch
-	dpi = 100.0
-	# determine the figure size in inches
-	# figsize = (dispsize[0]/dpi, dispsize[1]/dpi)
-	# create a figure
-	# fig = plt.figure(figsize=figsize, dpi=dpi, frameon=False)
-	ax = plt.Axes(fig, [0, 0, 1, 1])
-	ax.set_axis_off()
-	fig.add_axes(ax)
-	# plot display
-	ax.axis([0, display_size[0], 0, display_size[1]])
-
-	ax.imshow(screen)  # , origin='upper')
-
-	if image_file and return_offset:
-		return fig, ax, x, y
-	else:
-		return fig, ax
-
-
 def calculate_offset(dispSize, originalSize):
 	"""
 	Returns x and y offset of image on the display
@@ -133,7 +63,8 @@ def locate_aoi(x: int, y: int, aoi_dict: Dict, radius, default="outside"):
 	return default
 
 
-def get_aoi_concentration(aoi_x: int, aoi_y: int, radius: int , xs: Union[List, ndarray], ys: Union[List, ndarray], offset_x:int, offset_y:int):
+def get_aoi_concentration(aoi_x: int, aoi_y: int, radius: int, xs: Union[List, ndarray], ys: Union[List, ndarray],
+                          offset_x: int, offset_y: int):
 	"""
 	Returns the concentration of fixations on a specific aoi location
 
@@ -149,15 +80,6 @@ def get_aoi_concentration(aoi_x: int, aoi_y: int, radius: int , xs: Union[List, 
 	within_x = (aoi_x + offset_x - radius < xs + offset_x) & (xs + offset_x < aoi_x + offset_y + radius)
 	within_y = (aoi_y + offset_y - radius < ys + offset_y) & (ys + offset_y < aoi_y + offset_y + radius)
 	return sum(within_x & within_y)
-
-
-class Draw(Enum):
-	AOI = "draw_AOI"
-	HEATMAP = "draw_heatmap"
-	GAZE = "draw_gaze"
-	SACCADES = "draw_saccades"
-	FIXATIONS = "draw_fixations"
-	FIXATIONS_AGG = "draw_fixations_aggregate"
 
 
 class GazePlotter:
@@ -330,3 +252,72 @@ class GazePlotter:
 	def save_fig(self, file=None):
 		self.ax.invert_yaxis()
 		self.fig.savefig(os.path.join(self.save_dir, file if file else self.filename))
+
+	@staticmethod
+	def draw_display(fig, display_size=(1920, 1080), image_file: str = None, return_offset=False, background_value=.0):
+		"""
+		Returns a matplotlib.plt Figure and its axes, with a size of dispsize, and optionally with an image drawn onto it
+
+		:param fig: fig of plt.fig
+		:param display_size: tuple or list indicating the size of the display,
+				e.g. (1024,768)
+		:param image_file: full path to an image file over which the heatmap_wimg
+				is to be laid, or None for no image; NOTE: the image
+				may be smaller than the display size, the function
+				assumes that the image was presented at the centre of
+				the display (default = None)
+		:param return_offset: if True, function returns the x and y offset of the centered image on the figure
+		:param background_value: greyscale value [0..1] where the maximum is white
+		:return:- fig, ax: matplotlib.plt Figure and its axes: field of zeros
+				with a size of dispsize, and an image drawn onto it
+				if an imagefile was passed
+				- fig, ax, x_offset, y_offset: if returnOffset is True
+
+		"""
+		x, y = 0, 0
+		# construct screen (black background)
+		data_type = 'float32'
+		if image_file != None:
+			_, ext = os.path.splitext(image_file)
+			ext = ext.lower()
+			data_type = 'float32' if ext == '.png' else 'uint8'
+		screen = np.zeros((display_size[1], display_size[0], 3), dtype=data_type) + background_value
+
+		# if an image location has been passed, draw the image
+		if image_file != None:
+			# check if the path to the image exists
+			if not os.path.isfile(image_file):
+				raise Exception("ERROR in draw_display: imagefile not found at '%s'" % image_file)
+			# load image
+			img = plt.imread(image_file)
+
+			# flip image over the horizontal axis
+			# (do not do so on Windows, as the image appears to be loaded with
+			# the correct side up there; what's up with that? :/)
+			# if not os.name == 'nt':
+			# img = np.flipud(img)
+			# width and height of the image
+			w, h = len(img[0]), len(img)
+			# x and y position of the image on the display
+			x = int(display_size[0] / 2 - w / 2)
+			y = int(display_size[1] / 2 - h / 2)
+			# draw the image on the screen
+			screen[y:y + h, x:x + w, :] += img
+		# dots per inch
+		dpi = 100.0
+		# determine the figure size in inches
+		# figsize = (dispsize[0]/dpi, dispsize[1]/dpi)
+		# create a figure
+		# fig = plt.figure(figsize=figsize, dpi=dpi, frameon=False)
+		ax = plt.Axes(fig, [0, 0, 1, 1])
+		ax.set_axis_off()
+		fig.add_axes(ax)
+		# plot display
+		ax.axis([0, display_size[0], 0, display_size[1]])
+
+		ax.imshow(screen)  # , origin='upper')
+
+		if image_file and return_offset:
+			return fig, ax, x, y
+		else:
+			return fig, ax
