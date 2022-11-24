@@ -1,5 +1,4 @@
 import warnings
-from enum import Enum
 from typing import Dict, List, Union
 import numpy as np
 import matplotlib
