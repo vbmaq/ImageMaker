@@ -1,7 +1,7 @@
 import pandas as pd
 import yaml
 
-from EdfReader import read_edf
+from Tools.EdfReader import read_edf
 import os
 from configs.aoi_configs import *
 from pathlib import Path
@@ -170,12 +170,6 @@ def run(config):
 		plot_scanpaths(df_test, savePath=save_test, pipeline=pipeline, **kwargs)
 
 # </editor-fold>
-
-if __name__ == '__main__':
-	seqCmap = ["winter", True]  # [cmapName, isSequential]
-	nonseqCmap = ["prism", False]
-
-	run("configs/image_cfgs/image_config_template.yml")
 
 
 

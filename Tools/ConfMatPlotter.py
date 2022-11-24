@@ -35,7 +35,7 @@ def getName(ds):
 
 
 if __name__ == '__main__':
-	df = pd.read_csv('archive/forConfMat.csv')
+	df = pd.read_csv('../archive/forConfMat.csv')
 	df = df.reset_index()
 
 	fig, ax = plt.subplots(4,5, sharex="all", sharey="all")
