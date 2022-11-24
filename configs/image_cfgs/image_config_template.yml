@@ -1,14 +1,52 @@
 # check the Gazeplotter for available functions
+# the values here are default values and are only listed here for clarity's sake
 pipeline:
-    draw_fixations_aggregate:
+    draw_fixations:
+        radius: 108
+        set_uniform_fixations: False
         alpha: 0.5
+        edgecolors: 'white'
+        zorder: 50
+
+    draw_fixations_aggregate:
+        radius: 108
+        set_uniform_fixations: False,
+        alpha: 0.5
+        cmap_fixations: 'magma'
+        n_level_colors: 20
+        edgecolors: 'white'
+        zorder: 50
+
     draw_saccades:
         preserve_saccade_temporal_info: True
-        linewidth: 10
+        cmap_saccades: 'winter'
+        default_color: 'green'
         alpha: 0.5
+        linewidth: 2
+
+    draw_aoi:
+        radius: 108
+        zorder: 48
+
+    draw_gaze:
+        color: 'white'
+        marker: 'o'
+        size: 1.75
+        alpha: 0.5
+        linewidth: 0
+
+    draw_heatmap:
+        alpha: 1
+        cmap: PuRd
+        nbins: 300
+        sample_strength: 100
+
+    save_fig:
+    clear_fig:
+
 
 # this is where the images will be saved
-save_dir: image_results/
+save_dir: deleteme/image_results/
 
 # plots the scanpath over a background (stimulus). The directory can be set in imageprep.ini
 has_background: True

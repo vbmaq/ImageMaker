@@ -1,3 +1,4 @@
+import warnings
 from enum import Enum
 from typing import Dict, List, Union
 import numpy as np
@@ -15,49 +16,43 @@ COLOR = 1
 SIZE = 2
 
 
-def draw_display(fig, dispsize=(1920, 1080), imagefile=None, returnOffset=False, backgroundValue: float=0):
-	"""Returns a matplotlib.plt Figure and its axes, with a size of
-	dispsize, a black background colour, and optionally with an image drawn
-	onto it
+def draw_display(fig, display_size=(1920, 1080), image_file:str=None, return_offset=False, background_value=.0):
+	"""
+	Returns a matplotlib.plt Figure and its axes, with a size of dispsize, and optionally with an image drawn onto it
+	
+	:param fig: fig of plt.fig
+	:param display_size: tuple or list indicating the size of the display,
+			e.g. (1024,768)
+	:param image_file: full path to an image file over which the heatmap_wimg
+			is to be laid, or None for no image; NOTE: the image
+			may be smaller than the display size, the function
+			assumes that the image was presented at the centre of
+			the display (default = None)
+	:param return_offset: if True, function returns the x and y offset of the centered image on the figure
+	:param background_value: greyscale value [0..1] where the maximum is white
+	:return:- fig, ax: matplotlib.plt Figure and its axes: field of zeros
+			with a size of dispsize, and an image drawn onto it
+			if an imagefile was passed
+			- fig, ax, x_offset, y_offset: if returnOffset is True
 
-	arguments
-	 fig  - fig of plt.fig
-
-	dispsize  - tuple or list indicating the size of the display,
-		e.g. (1024,768)
-
-	keyword arguments
-
-	imagefile  - full path to an image file over which the heatmap_wimg
-		is to be laid, or None for no image; NOTE: the image
-		may be smaller than the display size, the function
-		assumes that the image was presented at the centre of
-		the display (default = None)
-
-	background - a grayscale value from 0 to 1 (1 = white)
-
-	returns
-	fig, ax  - matplotlib.plt Figure and its axes: field of zeros
-		with a size of dispsize, and an image drawn onto it
-		if an imagefile was passed
 	"""
 	x, y = 0,0
 	# construct screen (black background)
 	data_type = 'float32'
-	if imagefile != None:
-		_, ext = os.path.splitext(imagefile)
+	if image_file != None:
+		_, ext = os.path.splitext(image_file)
 		ext = ext.lower()
 		data_type = 'float32' if ext == '.png' else 'uint8'
-	screen = np.zeros((dispsize[1], dispsize[0], 3), dtype=data_type) + backgroundValue
+	screen = np.zeros((display_size[1], display_size[0], 3), dtype=data_type) + background_value
 
 
 	# if an image location has been passed, draw the image
-	if imagefile != None:
+	if image_file != None:
 		# check if the path to the image exists
-		if not os.path.isfile(imagefile):
-			raise Exception("ERROR in draw_display: imagefile not found at '%s'" % imagefile)
+		if not os.path.isfile(image_file):
+			raise Exception("ERROR in draw_display: imagefile not found at '%s'" % image_file)
 		# load image
-		img = plt.imread(imagefile)
+		img = plt.imread(image_file)
 
 		# flip image over the horizontal axis
 		# (do not do so on Windows, as the image appears to be loaded with
@@ -67,8 +62,8 @@ def draw_display(fig, dispsize=(1920, 1080), imagefile=None, returnOffset=False,
 		# width and height of the image
 		w, h = len(img[0]), len(img)
 		# x and y position of the image on the display
-		x = int(dispsize[0] / 2 - w / 2)
-		y = int(dispsize[1] / 2 - h / 2)
+		x = int(display_size[0] / 2 - w / 2)
+		y = int(display_size[1] / 2 - h / 2)
 		# draw the image on the screen
 		screen[y:y + h, x:x + w, :] += img
 	# dots per inch
@@ -81,11 +76,11 @@ def draw_display(fig, dispsize=(1920, 1080), imagefile=None, returnOffset=False,
 	ax.set_axis_off()
 	fig.add_axes(ax)
 	# plot display
-	ax.axis([0, dispsize[0], 0, dispsize[1]])
+	ax.axis([0, display_size[0], 0, display_size[1]])
 
 	ax.imshow(screen)  # , origin='upper')
 
-	if imagefile and returnOffset:
+	if image_file and return_offset:
 		return fig, ax, x, y
 	else:
 		return fig, ax
@@ -93,7 +88,8 @@ def draw_display(fig, dispsize=(1920, 1080), imagefile=None, returnOffset=False,
 
 def calculate_offset(dispSize, originalSize):
 	"""
-	Returns x and y offset
+	Returns x and y offset of image on the display
+
 	:param dispSize: display size (w, h)
 	:param originalSize: original size (w, h)
 	:return: offset_x, offset_y
@@ -103,7 +99,15 @@ def calculate_offset(dispSize, originalSize):
 	return offset_x, offset_y
 
 
-def offset_aoi(aoi_dict, offset_x=0, offset_y=0):
+def offset_aoi(aoi_dict: Dict, offset_x=0, offset_y=0):
+	"""
+	Offsets the aoi locations
+
+	:param aoi_dict: expected dict of {aoi_category: 2darray of shape (num_aoi, 2) }
+	:param offset_x:
+	:param offset_y:
+	:return: dict like aoi_dict but with offset locations
+	"""
 	_aois = {}
 	for key, value in aoi_dict.items():
 		_aois[key] = value + [offset_x, offset_y]
@@ -111,7 +115,17 @@ def offset_aoi(aoi_dict, offset_x=0, offset_y=0):
 	return _aois
 
 
-def locate_aoi(x, y, aoi_dict, radius, default="outside"):
+def locate_aoi(x: int, y: int, aoi_dict: Dict, radius, default="outside"):
+	"""
+	Given x, y coordinate, returns the aoi it is located on.
+
+	:param x:
+	:param y:
+	:param aoi_dict: dict of {aoi_category, locations of shape (num_aoi, 2)}
+	:param radius: radius of the aoi
+	:param default: default value returned if (x,y) is not in a specified aoi
+	:return: aoi keys as defined in aoi_dict or default if no aoi found
+	"""
 	for k, v in aoi_dict.items():
 		if np.any(np.apply_along_axis(lambda a: np.linalg.norm(a - [x, y]) < radius, 1, v)):
 			return k
@@ -119,7 +133,19 @@ def locate_aoi(x, y, aoi_dict, radius, default="outside"):
 	return default
 
 
-def get_aoi_concentration(aoi_x, aoi_y, radius, xs, ys, offset_x, offset_y):
+def get_aoi_concentration(aoi_x: int, aoi_y: int, radius: int , xs: Union[List, ndarray], ys: Union[List, ndarray], offset_x:int, offset_y:int):
+	"""
+	Returns the concentration of fixations on a specific aoi location
+
+	:param aoi_x: x-location of the aoi
+	:param aoi_y: y-location of the aoi
+	:param radius: radius of the aoi
+	:param xs: sequence of x-location of all fixations
+	:param ys: sequence of y-location of all fixations
+	:param offset_x: x offset of the image on the display
+	:param offset_y: y offset of the image on the display
+	:return: concentration of fixations
+	"""
 	within_x = (aoi_x + offset_x - radius < xs + offset_x) & (xs + offset_x < aoi_x + offset_y + radius)
 	within_y = (aoi_y + offset_y - radius < ys + offset_y) & (ys + offset_y < aoi_y + offset_y + radius)
 	return sum(within_x & within_y)
@@ -177,8 +203,14 @@ class GazePlotter:
 
 		self.save_dir = save_dir
 
+		self.filename = "figure.png"
+
 	def run_pipeline(self, pipe: Dict):
 		for fun, params in pipe.items():
+			if fun == "run_pipeline":
+				warnings.warn("Tried to run illegal function: run_pipeline. Skipping...")
+				continue
+
 			if params:
 				getattr(self, fun)(**params)
 			else:
@@ -208,9 +240,9 @@ class GazePlotter:
 			_aoi = locate_aoi(x + self.x_offset, y + self.y_offset,
 			                  aoi_dict=aois_offset, radius=radius, default="outside")
 			self.ax.scatter(x + self.x_offset, y + self.y_offset,
-			                s=self.get_shape_config(_aoi, set_uniform_fixations)[SIZE] * 1000,
-				            c=self.get_shape_config(_aoi, set_uniform_fixations)[COLOR],
-				            marker=self.get_shape_config(_aoi, set_uniform_fixations)[MARKER],
+			                s=self._get_shape_config(_aoi, set_uniform_fixations)[SIZE] * 1000,
+			                c=self._get_shape_config(_aoi, set_uniform_fixations)[COLOR],
+			                marker=self._get_shape_config(_aoi, set_uniform_fixations)[MARKER],
 			                alpha=alpha, edgecolors=edgecolors, zorder=zorder)
 
 	def draw_fixations_aggregate(self, radius=108, set_uniform_fixations=False,
@@ -231,10 +263,10 @@ class GazePlotter:
 					c_ = colorsFix[n_level_colors - 1]
 
 				self.ax.scatter(aoi[X] + self.x_offset, aoi[Y] + self.y_offset,
-				           s=self.get_shape_config(key, set_uniform_fixations)[SIZE] * 1000,
-				           color=c_,
-				           marker=self.get_shape_config(key, set_uniform_fixations)[MARKER], alpha=alpha, edgecolors=edgecolors,
-				           zorder=zorder)
+				                s=self._get_shape_config(key, set_uniform_fixations)[SIZE] * 1000,
+				                color=c_,
+				                marker=self._get_shape_config(key, set_uniform_fixations)[MARKER], alpha=alpha, edgecolors=edgecolors,
+				                zorder=zorder)
 
 		# plot outside aoi
 		aois_offset = offset_aoi(self.aoi_location, self.x_offset, self.y_offset)
@@ -245,10 +277,10 @@ class GazePlotter:
 			                  default="outside")
 			if _aoi not in list(self.aoi_location.keys()):
 				self.ax.scatter(x + self.x_offset, y + self.y_offset,
-				           s=self.get_shape_config(_aoi, set_uniform_fixations)[SIZE] * 1000,
-				           c=self.get_shape_config(_aoi, set_uniform_fixations)[COLOR],
-				           marker=self.get_shape_config(_aoi, set_uniform_fixations)[MARKER], alpha=alpha, edgecolors=edgecolors,
-				           zorder=zorder)
+				                s=self._get_shape_config(_aoi, set_uniform_fixations)[SIZE] * 1000,
+				                c=self._get_shape_config(_aoi, set_uniform_fixations)[COLOR],
+				                marker=self._get_shape_config(_aoi, set_uniform_fixations)[MARKER], alpha=alpha, edgecolors=edgecolors,
+				                zorder=zorder)
 
 	def draw_saccades(self,
 	                  preserve_saccade_temporal_info=True, cmap_saccades='winter', default_color='green'
@@ -283,7 +315,7 @@ class GazePlotter:
 		y = self.gaze[:, Y]
 		self.ax.scatter(x + self.x_offset, y + self.y_offset, c=color, marker=marker, s=size, alpha=alpha, linewidth=linewidth)
 
-	def get_shape_config(self, aoi_key, is_uniform=False):
+	def _get_shape_config(self, aoi_key, is_uniform=False):
 		if is_uniform:
 			return self.shape_roi_uniform.get(aoi_key)
 		else:
@@ -295,6 +327,6 @@ class GazePlotter:
 		self.saccades = None
 		self.gaze = None
 
-	def save_fig(self, file="figure.png"):
+	def save_fig(self, file=None):
 		self.ax.invert_yaxis()
-		self.fig.savefig(os.path.join(self.save_dir, file))
+		self.fig.savefig(os.path.join(self.save_dir, file if file else self.filename))
