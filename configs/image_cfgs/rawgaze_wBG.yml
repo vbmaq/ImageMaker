@@ -1,0 +1,12 @@
+pipeline:
+    draw_gaze:
+        size: 10
+        color: green
+
+save_dir: deleteme/gazeraw_wBG
+
+has_background: True
+
+labels:
+    - "0"
+    - "1"

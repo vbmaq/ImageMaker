@@ -1,0 +1,11 @@
+pipeline:
+    draw_heatmap:
+        alpha: 0.5
+
+save_dir: deleteme/heatmap_wBG
+
+has_background: True
+
+labels:
+    - "0"
+    - "1"

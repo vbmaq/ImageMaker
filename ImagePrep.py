@@ -77,6 +77,7 @@ def create_label_dirs(labels, from_dir):
 
 def plot_scanpaths(df, savePath, pipeline,
                    add_image_underlay=False,
+				   backdrop_value=0,
                    display_size=(1920, 1920), original_size=(1920, 1080), dpi=100,
                    ):
 	ascName = get_asc_file_names(df)
@@ -106,7 +107,7 @@ def plot_scanpaths(df, savePath, pipeline,
 			                            f"{str(subject)}_{idx}.jpg") if savePath else None
 			imagefile = os.path.join(DIR_STIMULI, f"stim_{str(idx).zfill(2)}.jpg") if add_image_underlay else None
 
-			fig, ax = draw_display(fig=fig, dispsize=display_size, imagefile=imagefile)
+			fig, ax = draw_display(fig=fig, dispsize=display_size, imagefile=imagefile, backgroundValue=backdrop_value)
 
 			fixations = np.array(datafile[int(idx) - 1]['events']['Efix'])[:, [3, 4, 2]]
 			gazes = np.array([datafile[int(idx) - 1]['x'], datafile[int(idx) - 1]['y']]).T
@@ -123,13 +124,18 @@ def plot_scanpaths(df, savePath, pipeline,
 			gp.clear_fig()
 
 
-def test2():
-	with open("configs/image_cfgs/saccades_only", "r") as stream:
+def test2(config):
+	with open(config, "r") as stream:
 		config = yaml.safe_load(stream)
 
 		save_dir = config["save_dir"]
 		pipeline = config["pipeline"]
 		labels = config["labels"]
+
+
+		kwargs = {"add_image_underlay": config.get("has_background", False),
+		          "backdrop_value": config.get("backdrop_value", 0)
+		          }
 
 		save_train = os.path.join(save_dir, "train")
 		save_val = os.path.join(save_dir, "validate")
@@ -137,16 +143,16 @@ def test2():
 
 		create_label_dirs(labels, [save_train, save_val, save_test])
 
-		plot_scanpaths(df_train, savePath=save_train, pipeline=pipeline)
-		plot_scanpaths(df_val, savePath=save_val, pipeline=pipeline)
-		plot_scanpaths(df_test, savePath=save_test, pipeline=pipeline)
+		plot_scanpaths(df_train, savePath=save_train, pipeline=pipeline, **kwargs)
+		plot_scanpaths(df_val, savePath=save_val, pipeline=pipeline, **kwargs)
+		plot_scanpaths(df_test, savePath=save_test, pipeline=pipeline, **kwargs)
 
 
 if __name__ == '__main__':
 	seqCmap = ["winter", True]  # [cmapName, isSequential]
 	nonseqCmap = ["prism", False]
 
-	test2()
+	test2("configs/image_cfgs/saccades_temporal_fixations_wBG.yml" )
 
 
 

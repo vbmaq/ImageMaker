@@ -11,8 +11,8 @@ MAPPING = {
 		"heatmap_wimg":                                         [5, "Saliency_Map_with_Background"],
 		"heatmap_noimg":                                        [6, "Saliency_Map"],
 
-		"saccades_only":                                        [10, "Saccades"],
-		"saccades_temporal":                                    [11, "Saccades_Temporal"],
+		"saccades_only.yml":                                        [10, "Saccades"],
+		"saccades_temporal.yml":                                    [11, "Saccades_Temporal"],
 		"saccades_temporal_nonSequentialCmap":                  [12, "Saccades_Temporal_Nonsequential_Colormap"],
 
 		"saccades_fixations_1shape1color":                      [15, "Saccades_Fixations_Single_Shape_Single_Color"],

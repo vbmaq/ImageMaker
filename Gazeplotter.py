@@ -15,7 +15,7 @@ COLOR = 1
 SIZE = 2
 
 
-def draw_display(fig, dispsize=(1920, 1080), imagefile=None, returnOffset=False):
+def draw_display(fig, dispsize=(1920, 1080), imagefile=None, returnOffset=False, backgroundValue: float=0):
 	"""Returns a matplotlib.plt Figure and its axes, with a size of
 	dispsize, a black background colour, and optionally with an image drawn
 	onto it
@@ -34,6 +34,8 @@ def draw_display(fig, dispsize=(1920, 1080), imagefile=None, returnOffset=False)
 		assumes that the image was presented at the centre of
 		the display (default = None)
 
+	background - a grayscale value from 0 to 1 (1 = white)
+
 	returns
 	fig, ax  - matplotlib.plt Figure and its axes: field of zeros
 		with a size of dispsize, and an image drawn onto it
@@ -46,7 +48,9 @@ def draw_display(fig, dispsize=(1920, 1080), imagefile=None, returnOffset=False)
 		_, ext = os.path.splitext(imagefile)
 		ext = ext.lower()
 		data_type = 'float32' if ext == '.png' else 'uint8'
-	screen = np.zeros((dispsize[1], dispsize[0], 3), dtype=data_type)
+	screen = np.zeros((dispsize[1], dispsize[0], 3), dtype=data_type) + backgroundValue
+
+
 	# if an image location has been passed, draw the image
 	if imagefile != None:
 		# check if the path to the image exists
@@ -152,14 +156,14 @@ class GazePlotter:
 		:param gaze: sequence of [x, y] shape: (numGaze, 2)
 		"""
 
-		self.SHAPE_ROI: Dict[str, List] = shape_roi
+		self.shape_roi: Dict[str, List] = shape_roi
 
-		self.SHAPE_ROI_UNIF = {}
-		for key in self.SHAPE_ROI.keys():
-			self.SHAPE_ROI_UNIF[key] = shape_roi_unif
+		self.shape_roi_uniform = {}
+		for key in self.shape_roi.keys():
+			self.shape_roi_uniform[key] = shape_roi_unif
 
-		self.AOI_COL: Dict[str, str] = aoi_col
-		self.AOI_LOC: Dict[str, List] = aoi_loc
+		self.aoi_color: Dict[str, str] = aoi_col
+		self.aoi_location: Dict[str, List] = aoi_loc
 
 		self.fig = fig
 		self.ax = ax
@@ -175,7 +179,10 @@ class GazePlotter:
 
 	def run_pipeline(self, pipe: Dict):
 		for fun, params in pipe.items():
-			getattr(self, fun)(**params)
+			if params:
+				getattr(self, fun)(**params)
+			else:
+				getattr(self, fun)()
 
 	def draw_heatmap(self, alpha=1, cmap='PuRd', nbins=300, sample_strength=100):
 
@@ -194,7 +201,7 @@ class GazePlotter:
 
 	def draw_fixations(self, radius=108, set_uniform_fixations=False, alpha=0.5, edgecolors='white', zorder=50
 	                   ):
-		aois_offset = offset_aoi(self.AOI_LOC, self.x_offset, self.y_offset)
+		aois_offset = offset_aoi(self.aoi_location, self.x_offset, self.y_offset)
 
 		for x, y, _ in self.fixations:
 
@@ -211,7 +218,7 @@ class GazePlotter:
 		# color map of fixations
 		colorsFix = matplotlib.cm.get_cmap(cmap_fixations, n_level_colors)(np.arange(n_level_colors))
 
-		for key, aois in self.AOI_LOC.items():
+		for key, aois in self.aoi_location.items():
 			for aoi in aois:
 				concentration = get_aoi_concentration(aoi_x=aoi[X], aoi_y=aoi[Y], radius=radius,
 				                                      xs=self.fixations[:, X], ys=self.fixations[:, Y],
@@ -230,13 +237,13 @@ class GazePlotter:
 				           zorder=zorder)
 
 		# plot outside aoi
-		aois_offset = offset_aoi(self.AOI_LOC, self.x_offset, self.y_offset)
+		aois_offset = offset_aoi(self.aoi_location, self.x_offset, self.y_offset)
 
 		# for i in range(len(self.fixations)):
 		for x, y, _ in self.fixations:
 			_aoi = locate_aoi(x + self.x_offset, y + self.y_offset, aoi_dict=aois_offset, radius=radius,
 			                  default="outside")
-			if _aoi not in list(self.AOI_LOC.keys()):
+			if _aoi not in list(self.aoi_location.keys()):
 				self.ax.scatter(x + self.x_offset, y + self.y_offset,
 				           s=self.get_shape_config(_aoi, set_uniform_fixations)[SIZE] * 1000,
 				           c=self.get_shape_config(_aoi, set_uniform_fixations)[COLOR],
@@ -265,10 +272,10 @@ class GazePlotter:
 			self.ax.plot([sx + self.x_offset, ex + self.x_offset], [sy + self.y_offset, ey + self.y_offset], c=colors[i],
 			             linewidth=linewidth, zorder=49, alpha=alpha)
 
-	def draw_AOI(self, radius=108, zorder=48):
-		for key, aois in self.AOI_LOC.items():
+	def draw_aoi(self, radius=108, zorder=48):
+		for key, aois in self.aoi_location.items():
 			for aoi in aois:
-				circle = plt.Circle((aoi[X] + self.x_offset, aoi[Y] + self.y_offset), radius, color=self.AOI_COL.get(key), zorder=zorder)
+				circle = plt.Circle((aoi[X] + self.x_offset, aoi[Y] + self.y_offset), radius, color=self.aoi_color.get(key), zorder=zorder)
 				self.ax.add_patch(circle)
 
 	def draw_gaze(self, color='white', marker='o', size=1.75, alpha=0.5, linewidth=0):
@@ -278,9 +285,9 @@ class GazePlotter:
 
 	def get_shape_config(self, aoi_key, is_uniform=False):
 		if is_uniform:
-			return self.SHAPE_ROI_UNIF.get(aoi_key)
+			return self.shape_roi_uniform.get(aoi_key)
 		else:
-			return self.SHAPE_ROI.get(aoi_key)
+			return self.shape_roi.get(aoi_key)
 
 	def clear_fig(self):
 		self.fig.clf()

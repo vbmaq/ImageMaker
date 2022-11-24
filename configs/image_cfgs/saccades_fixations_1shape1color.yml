@@ -1,0 +1,17 @@
+pipeline:
+    draw_fixations:
+        alpha: 0.5
+        set_uniform_fixations: True
+
+    draw_saccades:
+        preserve_saccade_temporal_info: False
+        linewidth: 3
+        alpha: 1
+
+
+save_dir: deleteme/saccades_fixations_1shape1color
+
+# only needed for directory creation
+labels:
+    - "0"
+    - "1"

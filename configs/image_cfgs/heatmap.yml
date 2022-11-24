@@ -1,0 +1,14 @@
+pipeline:
+    draw_heatmap:
+        alpha: 1
+
+save_dir: deleteme/heatmap
+
+has_background: False
+
+#color of the backdrop [0..1 greyscale]
+backdrop_value: 0
+
+labels:
+    - "0"
+    - "1"

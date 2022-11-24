@@ -1,0 +1,9 @@
+pipeline:
+    draw_gaze:
+        size: 10
+
+save_dir: deleteme/gazeraw
+
+labels:
+    - "0"
+    - "1"

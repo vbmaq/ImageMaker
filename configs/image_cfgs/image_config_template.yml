@@ -1,0 +1,22 @@
+# check the Gazeplotter for available functions
+pipeline:
+    draw_fixations_aggregate:
+        alpha: 0.5
+    draw_saccades:
+        preserve_saccade_temporal_info: True
+        linewidth: 10
+        alpha: 0.5
+
+# this is where the images will be saved
+save_dir: image_results/
+
+# plots the scanpath over a background (stimulus). The directory can be set in imageprep.ini
+has_background: True
+
+# color of the backdrop [0..1 greyscale]
+backdrop_value: 0
+
+# only needed for directory creation
+labels:
+    - "0"
+    - "1"

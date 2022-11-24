@@ -1,0 +1,15 @@
+pipeline:
+    draw_aoi:
+    draw_fixations_aggregate:
+        alpha: 1
+    draw_saccades:
+        preserve_saccade_temporal_info: True
+        linewidth: 10
+        alpha: 1
+
+save_dir: deleteme/saccades_temporal_fixations_aoi
+
+# only needed for directory creation
+labels:
+    - "0"
+    - "1"
