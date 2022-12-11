@@ -41,6 +41,7 @@ pipeline:
         nbins: 300
         sample_strength: 100
 
+
     save_fig:
     clear_fig:
 
