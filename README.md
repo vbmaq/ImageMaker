@@ -9,7 +9,7 @@ this paper may find this implementation easily generalizable to their needs. The
 
 
 # Models for Evaluation 
-To compare the effectiveness of each configuration, we evaluated scanpath sets generated from various settings on two standard image classifiers using oneshot and 5-fold cross validation. 
+To compare the effectiveness of each configuration, we evaluated scanpath sets generated from various settings on two standard image classifiers using 5-fold cross validation for both models as well as an additional standard 70-20-10 train-validate-test split on the VGG-16 model. 
 ## VGG-16
 
 ## SVM 
