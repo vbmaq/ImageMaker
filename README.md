@@ -14,7 +14,7 @@ To compare the effectiveness of each configuration, we evaluated scanpath sets g
 We used a standard off-the-shelf VGG-16 model pretrained on the [Imagenet](https://arxiv.org/abs/1409.1556) dataset. We chose this model due to both its popularity and ease to implement. The model was created using the Pytorch library, which makes the Imagenet weights available for VGG models as well as many other standard architecture. 
 
 ## SVM 
-We also compared the results of the VGG-16 model to a Support Vector Machine (SVM) image classifier using the ![SKlearn](https://scikit-learn.org/stable/) library. For each scanpath set, we apply an exhaustive parameter grid search to select the values of the hyperparameters. The models fit with the best parameters per scanpath set are available for download in the link below. 
+We also compared the results of the VGG-16 model to a Support Vector Machine (SVM) image classifier using the ![SKlearn](https://scikit-learn.org/stable/) library. For each scanpath set, we apply an exhaustive parameter grid search to select the values of the hyperparameters. The models fit with the best parameters per scanpath set are available for download ![here](https://osf.io/fhmjy/). 
 
 # Dataset 
 We produced 13 scanpath sets from the dataset in ![Marchiori's paper](https://www.sciencedirect.com/science/article/abs/pii/S0022053121001083). The data was recorded during a behavioral experiment where the eye movements of participants are captured while playing a set of economic games. The generated scanpath images are available for download ![here](https://osf.io/fhmjy/). 
